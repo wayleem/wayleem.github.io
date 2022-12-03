@@ -3,7 +3,7 @@ export default {
   theme: {
     extend: {},
   },
-  purge: ["./index.html", './src/**/*.{js, jsx, ts, tsx}'], // for unused CSS
+  purge: ["./index.html", './src/**/*.{js,jsx,ts,tsx}'], // for unused CSS
   variants: {
     extend: {},
   },
