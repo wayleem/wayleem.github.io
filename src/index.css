@@ -10,4 +10,8 @@
     .sidebar-col-mobile {
         @apply flex flex-row items-center
     }
+
+    .sidebar-external-link {
+        @apply p-1 text-sm
+    }
 }
