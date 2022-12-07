@@ -2,6 +2,21 @@
 @tailwind components;
 @tailwind base;
 
+@font-face {
+    font-family: 'Quicksand';
+    src: url('./assets/fonts/Quicksand-VariableFont_wght.ttf') format('ttf');
+}
+
+@font-face {
+    font-family: 'Montserrat';
+    src: url('./assets/fonts/Montserrat-VariableFont_wght.ttf') format('ttf');
+}
+
+@font-face {
+    font-family: 'Oswald';
+    src: url('./assets/fonts/Oswald-VariableFont_wght.ttf') format('ttf');
+}
+
 @layer components {
     .sidebar-col {
         @apply flex flex-col items-center
