@@ -4,9 +4,9 @@ import LogoSubtitle from "../assets/images/sublogo.png"
 
 const Sidebar = () => {
     return (
-        <div className="bg-zinc-900 text-[#4d4d4e] top-0 left-0 h-12 w-screen sidebar-col-mobile sm:h-screen sm:w-16 sm:sidebar-col fixed">
+        <div className="bg-zinc-900 text-[#4d4d4e] h-12 w-screen sidebar-col-mobile relative sm:h-screen sm:w-16 sm:sidebar-col">
 
-            <Link className="w-12 mx-2" to="/">
+            <Link className="w-10 mx-2" to="/">
                 <img className="mt-6" src={LogoW} />
                 <img className="invisible sm:visible" src={LogoSubtitle} />
             </Link>
