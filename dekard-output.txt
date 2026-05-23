@@ -1,0 +1,148 @@
+// File: app/types/spline.d.ts
+
+declare module "@splinetool/react-spline" {
+	import React from "react";
+
+	interface SplineProps {
+		scene: string;
+		[key: string]: any;
+	}
+
+	const Spline: React.FC<SplineProps>;
+
+	export default Spline;
+}
+
+
+// File: app/static/verbs.ts
+
+const verbs = [
+	"Innovate",
+	"Create",
+	"Transform",
+	"Craft",
+	"Build",
+	"Design",
+	"Develop",
+	"Engineer",
+	"Architect",
+	"Elevate",
+	"Learn",
+];
+
+export default verbs;
+
+
+// File: app/static/skills.ts
+
+const skills = [
+	"TypeScript",
+	"JavaScript",
+	"Java",
+	"C",
+	"Python",
+	"Rust",
+	"HTML & CSS",
+	"Svelte",
+	"React",
+	"Redux",
+	"Express.js",
+	"Node.js",
+	"Tailwind CSS",
+	"Three.js",
+	"MongoDB",
+	"SQL",
+	"Git",
+	"AWS",
+	"Linux",
+	"Blender",
+	"MERN Stack",
+];
+
+export default skills;
+
+
+// File: app/static/positions.ts
+
+const positions = [
+	"Software Developer",
+	"Web Developer",
+	"Game Developer",
+	"Software Engineer",
+	"Computer Programmer",
+	"Project Manager",
+	"Web Designer",
+	"Game Designer",
+];
+
+export default positions;
+
+
+// File: app/static/courses.ts
+
+const courses = [
+	"Frontend Development",
+	"Backend Development",
+	"Full Stack Development",
+	"Software Development",
+	"Computer Networking",
+	"Network Administration",
+	"Cloud Computing",
+	"Information Management",
+	"Data Structures",
+	"Object Oriented Programming",
+	"Game Design",
+	"Database Design",
+	"Human-Computer Interaction",
+	"Linear Algebra",
+	"Discrete Mathematics",
+	"Probability & Statistics",
+	"Graph Theory",
+	"Data Analysis",
+	"Numerical Analysis",
+	"Applied Algebra",
+	"Calculus III",
+	"Project Management",
+];
+
+export default courses;
+
+
+// File: app/static/colors.ts
+
+export const colors = {
+	home: {
+		primary: "#BAFFC9", // Pastel Green
+		secondary: "#D1FFD9", // Lighter Pastel Green
+		background: "#E8FFEC", // Very Light Pastel Green
+	},
+	about: {
+		primary: "#BAE1FF", // Pastel Blue
+		secondary: "#D1EAFF", // Lighter Pastel Blue
+		background: "#E8F4FF", // Very Light Pastel Blue
+	},
+	skills: {
+		primary: "#FFFFBA", // Pastel Yellow
+		secondary: "#FFFFD1", // Lighter Pastel Yellow
+		background: "#FFFFE8", // Very Light Pastel Yellow
+	},
+	projects: {
+		primary: "#FFDFBA", // Pastel Orange
+		secondary: "#ffd4a6", // Lighter Pastel Orange
+		background: "#FFF4E8", // Very Light Pastel Orange
+	},
+	articles: {
+		primary: "#FFB3BA", // Pastel Pink
+		secondary: "#ff99a6", // Lighter Pastel Pink
+		background: "#FFE8EC", // Very Light Pastel Pink
+	},
+	contact: {
+		primary: "#E1BAFF", // Pastel Purple
+		secondary: "#EACFFF", // Lighter Pastel Purple
+		background: "#F4E8FF", // Very Light Pastel Purple
+	},
+};
+export type ColorKey = keyof typeof colors;
+export type ColorProperty = keyof typeof colors.home;
+
+

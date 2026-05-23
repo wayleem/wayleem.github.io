@@ -7,6 +7,8 @@ import { Header } from "./home/Hero";
 import skills from "./static/skills";
 import Button from "./components/Button";
 import Portrait from "./home/Portrait";
+import MatrixRain from "./home/Canvas";
+import RubiksCube from "./home/Scene";
 
 export default function Home() {
 	const handleDownload = () => {
@@ -25,7 +27,7 @@ export default function Home() {
 					<div className="w-full items-center md:items-start min-h-2/3 lg:h-full md:w-2/3 lg:w-2/3 2xl:w-3/5 3xl:w-3/5 4xl:w-1/2 relative z-20 flex flex-col px-8 md:px-12 lg:px-16 4xl:px-32 py-16 lg:py-48 4xl:py-64 transition-all duration-300">
 						<Header />
 
-						<div className="flex mt-8 lg:mt-16 4xl:mt-32 space-x-12 text-center  transition-all duration-300">
+						<div className="flex mt-8 lg:mt-16 4xl:mt-32 space-x-12 text-center transition-all duration-300">
 							<Button onClick={handleDownload} label="Download CSV" color="bg-orange-primary" />
 							<Button onClick={handleContact} label="Contact Me" color="bg-purple-primary" />
 						</div>
@@ -33,13 +35,7 @@ export default function Home() {
 
 					{/* Canvas/Scene */}
 					<div className="w-full h-full lg:w-1/3 2xl:w-2/5 3xl:w-2/5 4xl:w-[900px] flex items-center justify-center border-y-2 lg:border-x-2 border-black bg-green-secondary lg:transition-all lg:duration-300">
-						<div className="w-full h-full aspect-square">
-							<Canvas>
-								<Suspense fallback={null}>
-									<Scene />
-								</Suspense>
-							</Canvas>
-						</div>
+						<Scene />
 					</div>
 				</div>
 

@@ -1,31 +1,34 @@
 // hooks/useScrollDirection.ts
-import { useState, useEffect, RefObject } from "react";
+import { useState, useEffect } from "react";
 
-export function useScrollDirection(scrollRef: RefObject<HTMLElement>) {
+export function useScrollDirection() {
 	const [scrollDirection, setScrollDirection] = useState("up");
 	const [prevScrollY, setPrevScrollY] = useState(0);
-	const threshold = 50; // Adjust this value as needed
+	const [isAtTop, setIsAtTop] = useState(true);
+	const threshold = 50;
 
 	useEffect(() => {
-		const scrollElement = scrollRef.current;
-		if (!scrollElement) return;
-
 		const handleScroll = () => {
-			const currentScrollY = scrollElement.scrollTop;
+			const currentScrollY = window.scrollY;
+
+			setIsAtTop(currentScrollY === 0);
+
 			if (Math.abs(currentScrollY - prevScrollY) < threshold) {
 				return;
 			}
+
 			if (currentScrollY > prevScrollY) {
 				setScrollDirection("down");
 			} else {
 				setScrollDirection("up");
 			}
+
 			setPrevScrollY(currentScrollY);
 		};
 
-		scrollElement.addEventListener("scroll", handleScroll, { passive: true });
-		return () => scrollElement.removeEventListener("scroll", handleScroll);
-	}, [prevScrollY, scrollRef, threshold]);
+		window.addEventListener("scroll", handleScroll, { passive: true });
+		return () => window.removeEventListener("scroll", handleScroll);
+	}, [prevScrollY]);
 
-	return scrollDirection;
+	return { scrollDirection, isAtTop };
 }

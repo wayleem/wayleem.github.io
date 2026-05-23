@@ -11,11 +11,10 @@ import Contact from "./contact/page";
 import { useScrollToSection } from "./hooks/useScrollToSection";
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
 	useScrollToSection();
-	const mainRef = useRef<HTMLElement>(null);
 	return (
 		<body className="font-body w-full min-h-screen">
-			<Navbar scrollRef={mainRef} />
-			<main ref={mainRef} className="relative">
+			<Navbar />
+			<main className="relative">
 				<section id="home" className="min-h-screen w-full bg-white">
 					<Home />
 				</section>

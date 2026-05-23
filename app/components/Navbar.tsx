@@ -65,14 +65,18 @@ interface NavbarProps {
 	scrollRef: RefObject<HTMLElement>;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ scrollRef }) => {
+const Navbar: React.FC = () => {
 	const { setCurrentPage } = usePageContext();
-	const scrollDirection = useScrollDirection(scrollRef);
+	const { scrollDirection, isAtTop } = useScrollDirection();
 	const controls = useAnimation();
 
 	useEffect(() => {
-		controls.start({ y: scrollDirection === "down" ? "-200%" : 0 });
-	}, [scrollDirection, controls]);
+		if (isAtTop || scrollDirection === "up") {
+			controls.start({ y: 0 });
+		} else {
+			controls.start({ y: "-200%" });
+		}
+	}, [scrollDirection, isAtTop, controls]);
 
 	return (
 		<motion.nav

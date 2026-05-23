@@ -1,0 +1,7 @@
+{
+	"inputDir": "./app",
+	"outputFile": "./dekard-output.txt",
+	"include": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
+	"ignore": ["**/*.test.ts", "**/*.test.js", "**/node_modules/**"],
+	"watch": false
+}
