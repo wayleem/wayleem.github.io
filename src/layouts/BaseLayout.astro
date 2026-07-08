@@ -1,5 +1,6 @@
 ---
 import '@/styles/global.css';
+import { ClientRouter } from 'astro:transitions';
 
 interface Props {
   title: string;
@@ -9,7 +10,7 @@ interface Props {
 
 const {
   title,
-  description = 'Wayleem — builder. Projects, writing, and how to reach me.',
+  description = 'wayleem — i make stuff. work, writing, and how to reach me.',
   immersive = false,
 } = Astro.props;
 
@@ -17,7 +18,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
 ---
 
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -30,17 +31,22 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonical} />
     <meta name="twitter:card" content="summary_large_image" />
-    <!-- Apply saved/system theme before first paint to avoid a flash. -->
+    <ClientRouter />
+    <!-- Light by default; re-apply saved theme on load AND after each view
+         transition swap (before paint) so it never flashes or resets. -->
     <script is:inline>
       (() => {
-        try {
-          const t = localStorage.getItem('theme');
-          if (t === 'light' || t === 'dark') {
-            document.documentElement.dataset.theme = t;
-          } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
-            document.documentElement.dataset.theme = 'light';
-          }
-        } catch {}
+        const apply = () => {
+          let t;
+          try { t = localStorage.getItem('theme'); } catch {}
+          if (t === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+          else document.documentElement.removeAttribute('data-theme');
+        };
+        apply();
+        if (!window.__themeBound) {
+          window.__themeBound = true;
+          document.addEventListener('astro:after-swap', apply);
+        }
       })();
     </script>
   </head>

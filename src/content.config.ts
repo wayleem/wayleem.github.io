@@ -14,6 +14,10 @@ const work = defineCollection({
     date: z.coerce.date(),
     featured: z.boolean().default(false),
     order: z.number().default(0), // burst order on the canvas
+    // Work holds both a career timeline and personal projects:
+    kind: z.enum(['job', 'project']).default('project'),
+    org: z.string().nullish(), // company/org (timeline entries)
+    period: z.string().nullish(), // e.g. "2024 – now"
     tags: z.array(z.string()).default([]),
     cover: z.string().nullish(), // public path, e.g. /covers/work/foo.png
     repo: z.string().url().nullish(),

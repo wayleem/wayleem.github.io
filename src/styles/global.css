@@ -1,43 +1,44 @@
-/* ── Design tokens: node-graph / blueprint, dark default + light toggle ── */
+/* ── Design tokens: nonchalant warm light default + dark toggle ── */
 :root {
-  color-scheme: dark;
-  --bg: #0b0f14;
-  --bg-grid: #1a2430;
-  --surface: #121a24;
-  --surface-2: #17212e;
-  --border: #26323f;
-  --border-strong: #38495c;
-  --text: #e6edf3;
-  --text-dim: #8b9bb0;
-  --accent: #5ec2ff;
-  --accent-2: #7df0c8;
-  --hub: #ffd479;
-  --danger: #ff6b6b;
-  --edge: #38495c;
-  --edge-active: #5ec2ff;
+  color-scheme: light;
+  --bg: #f4f3ec;
+  --bg-grid: #d6d3c4;
+  --surface: #ffffff;
+  --surface-2: #efeee5;
+  --border: #ddd9cc;
+  --border-strong: #c1bdad;
+  --text: #26241d;
+  --text-dim: #7c7869;
+  --accent: #3b6fe0;
+  --accent-2: #33a866;
+  --hub: #26241d;
+  --danger: #e0553f;
+  --edge: #cfccbe;
+  --edge-active: #26241d;
 
   --radius: 10px;
-  --shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow: 0 8px 24px rgba(30, 28, 20, 0.1);
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Fira Code", Menlo, monospace;
 }
 
-:root[data-theme="light"] {
-  color-scheme: light;
-  --bg: #f6f8fa;
-  --bg-grid: #dfe6ee;
-  --surface: #ffffff;
-  --surface-2: #eef2f6;
-  --border: #d0d7de;
-  --border-strong: #aeb9c4;
-  --text: #17222e;
-  --text-dim: #5a6b7b;
-  --accent: #0969da;
-  --accent-2: #1a7f64;
-  --hub: #b5850f;
-  --edge: #c2ccd6;
-  --edge-active: #0969da;
-  --shadow: 0 8px 24px rgba(20, 30, 45, 0.12);
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0e1116;
+  --bg-grid: #232a33;
+  --surface: #161b22;
+  --surface-2: #1c232c;
+  --border: #2b3440;
+  --border-strong: #3d4b5a;
+  --text: #e6edf3;
+  --text-dim: #9aa7b5;
+  --accent: #5b8dff;
+  --accent-2: #56d6a0;
+  --hub: #ffd479;
+  --danger: #ff6b6b;
+  --edge: #313c48;
+  --edge-active: #cdd6e0;
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
 * { box-sizing: border-box; }

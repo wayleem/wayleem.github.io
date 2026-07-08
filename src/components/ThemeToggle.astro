@@ -1,6 +1,6 @@
 ---
-// Light/dark toggle. Theme is applied pre-paint in BaseLayout; this just flips
-// and persists it.
+// Light/dark toggle. Theme is applied pre-paint in BaseLayout; this flips and
+// persists it. Uses delegation bound once so it survives view transitions.
 ---
 
 <button id="theme-toggle" class="overlay-btn mono" type="button" aria-label="Toggle color theme">
@@ -8,12 +8,17 @@
 </button>
 
 <script is:inline>
-  document.getElementById('theme-toggle')?.addEventListener('click', () => {
-    const cur = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
-    const next = cur === 'light' ? 'dark' : 'light';
-    document.documentElement.dataset.theme = next;
-    try {
-      localStorage.setItem('theme', next);
-    } catch {}
-  });
+  if (!window.__themeToggleBound) {
+    window.__themeToggleBound = true;
+    document.addEventListener('click', (e) => {
+      const btn = e.target && e.target.closest && e.target.closest('#theme-toggle');
+      if (!btn) return;
+      const dark = document.documentElement.dataset.theme === 'dark';
+      if (dark) document.documentElement.removeAttribute('data-theme');
+      else document.documentElement.setAttribute('data-theme', 'dark');
+      try {
+        localStorage.setItem('theme', dark ? 'light' : 'dark');
+      } catch {}
+    });
+  }
 </script>

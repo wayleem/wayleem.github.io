@@ -36,6 +36,16 @@ export default config({
         date: fields.date({ label: 'Date', defaultValue: { kind: 'today' } }),
         featured: fields.checkbox({ label: 'Feature on canvas', defaultValue: false }),
         order: fields.integer({ label: 'Canvas order', defaultValue: 0 }),
+        kind: fields.select({
+          label: 'Kind',
+          options: [
+            { label: 'Project', value: 'project' },
+            { label: 'Job (timeline)', value: 'job' },
+          ],
+          defaultValue: 'project',
+        }),
+        org: fields.text({ label: 'Org / company (jobs)' }),
+        period: fields.text({ label: 'Period, e.g. 2024 – now (jobs)' }),
         tags,
         cover: fields.image({
           label: 'Cover image',

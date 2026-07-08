@@ -18,7 +18,7 @@ const writing = (await getCollection('writing'))
     <li><a href="/about">About</a></li>
     <li><a href="/contact">Contact</a></li>
     <li>
-      <a href="/work">Projects</a>
+      <a href="/work">Work</a>
       <ul>
         {work.map((e) => (
           <li><a href={`/work/${e.id}`}>{e.data.title}</a></li>

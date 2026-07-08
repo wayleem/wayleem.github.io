@@ -1,32 +1,36 @@
 import type { Node, Edge } from '@xyflow/react';
-import { SECTIONS, HUB, getSection } from '@/lib/nav';
+import { SECTIONS, HUB, ABOUT_BLURB, CONTACT_LINKS } from '@/lib/nav';
 
-// A burst item (project or featured post) passed in from the build-time
-// content query. `more` marks the "See all →" escape-hatch node.
+// A burst node (work/writing item, or a contact link/action).
 export interface ItemLink {
   id: string;
   label: string;
   href: string;
+  external?: boolean;
+  action?: 'message';
   more?: boolean;
+  color?: string;
 }
 
 export interface CanvasData {
-  projects: ItemLink[];
+  work: ItemLink[];
   writing: ItemLink[];
 }
 
 const DEG = Math.PI / 180;
-export const HUB_RADIUS = 240; // hub → section distance
-export const ITEM_RADIUS = 200; // section → item distance
+export const HUB_RADIUS = 250; // hub → section
+export const ITEM_RADIUS = 190; // section → burst item
+const PANEL_W = 250;
+const PANEL_H = 150;
+const PANEL_GAP = 46;
 
 function sectionPos(angle: number) {
   return { x: Math.cos(angle * DEG) * HUB_RADIUS, y: Math.sin(angle * DEG) * HUB_RADIUS };
 }
 
-// Fan items outward from the section, centered on the section's own outward
-// angle so they never point back toward the hub. Wider arc for more items.
+// Fan items outward from the section, centered on its outward angle.
 function itemPositions(sectionAngle: number, count: number) {
-  const spread = Math.min(160, 32 * Math.max(count - 1, 1));
+  const spread = Math.min(150, 34 * Math.max(count - 1, 1));
   const start = sectionAngle - spread / 2;
   const step = count > 1 ? spread / (count - 1) : 0;
   const base = sectionPos(sectionAngle);
@@ -36,21 +40,12 @@ function itemPositions(sectionAngle: number, count: number) {
   });
 }
 
-function itemsFor(id: string, data: CanvasData): ItemLink[] {
-  if (id === 'projects') return data.projects;
-  if (id === 'writing') return data.writing;
-  return [];
-}
-
 export interface BuildArgs {
   data: CanvasData;
   expanded: Set<string>;
 }
 
-export function buildGraph({ data, expanded }: BuildArgs): {
-  nodes: Node[];
-  edges: Edge[];
-} {
+export function buildGraph({ data, expanded }: BuildArgs): { nodes: Node[]; edges: Edge[] } {
   const nodes: Node[] = [];
   const edges: Edge[] = [];
 
@@ -58,21 +53,17 @@ export function buildGraph({ data, expanded }: BuildArgs): {
     id: HUB.id,
     type: 'hub',
     position: { x: 0, y: 0 },
-    data: { label: HUB.label, tagline: HUB.tagline },
+    data: { label: HUB.label, tagline: HUB.tagline, color: HUB.color },
     draggable: false,
   });
 
   for (const s of SECTIONS) {
-    const isExpanded = expanded.has(s.id);
-    const items = itemsFor(s.id, data);
+    const isOpen = expanded.has(s.id);
     nodes.push({
       id: s.id,
       type: 'section',
       position: sectionPos(s.angle),
-      data: {
-        section: s,
-        expanded: isExpanded,
-      },
+      data: { section: s, expanded: isOpen, color: s.color },
       draggable: false,
     });
     edges.push({
@@ -80,42 +71,57 @@ export function buildGraph({ data, expanded }: BuildArgs): {
       source: HUB.id,
       target: s.id,
       type: 'straight',
-      animated: isExpanded,
-      className: isExpanded ? 'rf-edge rf-edge--active' : 'rf-edge',
+      className: isOpen ? 'rf-edge rf-edge--active' : 'rf-edge',
     });
+    if (!isOpen) continue;
 
-    if (isExpanded && items.length) {
-      const pos = itemPositions(s.angle, items.length);
-      items.forEach((item, i) => {
-        const nodeId = `${s.id}:${item.id}`;
-        nodes.push({
-          id: nodeId,
-          type: 'item',
-          position: pos[i],
-          data: { item, sectionId: s.id },
-          draggable: false,
-        });
-        edges.push({
-          id: `e-${s.id}-${nodeId}`,
-          source: s.id,
-          target: nodeId,
-          type: 'straight',
-          className: 'rf-edge rf-edge--active',
-        });
+    if (s.kind === 'text') {
+      // About: a text panel to the LEFT of the section.
+      const base = sectionPos(s.angle);
+      const id = `${s.id}:panel`;
+      nodes.push({
+        id,
+        type: 'panel',
+        position: { x: base.x - PANEL_GAP - PANEL_W, y: base.y - PANEL_H / 2 },
+        data: { text: ABOUT_BLURB, color: s.color },
+        draggable: false,
       });
+      edges.push({ id: `e-${s.id}-${id}`, source: s.id, target: id, type: 'straight', className: 'rf-edge rf-edge--active' });
+      continue;
     }
+
+    // Collections (work/writing) and links (contact) both burst circular items.
+    const items: ItemLink[] =
+      s.kind === 'links'
+        ? CONTACT_LINKS.map((l) => ({ ...l, color: s.color }))
+        : (s.id === 'work' ? data.work : data.writing).map((l) => ({ ...l, color: s.color }));
+
+    const pos = itemPositions(s.angle, items.length);
+    items.forEach((item, i) => {
+      const id = `${s.id}:${item.id}`;
+      nodes.push({
+        id,
+        type: 'item',
+        position: pos[i],
+        data: { item, color: s.color },
+        draggable: false,
+      });
+      edges.push({ id: `e-${s.id}-${id}`, source: s.id, target: id, type: 'straight', className: 'rf-edge rf-edge--active' });
+    });
   }
 
   return { nodes, edges };
 }
 
-// Bounds for panning so a visitor can never lose the map in the void.
-export function extentFor(data: CanvasData): [[number, number], [number, number]] {
-  const reach = HUB_RADIUS + ITEM_RADIUS + 260;
+// Node ids that belong to a section's expanded cluster (for auto-pan framing).
+export function clusterNodeIds(sectionId: string, nodes: Node[]): string[] {
+  return [sectionId, ...nodes.filter((n) => n.id.startsWith(`${sectionId}:`)).map((n) => n.id)];
+}
+
+export function extentFor(_data: CanvasData): [[number, number], [number, number]] {
+  const reach = HUB_RADIUS + ITEM_RADIUS + 420;
   return [
     [-reach, -reach],
     [reach, reach],
   ];
 }
-
-export { getSection };
