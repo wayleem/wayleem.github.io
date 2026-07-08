@@ -1,0 +1,27 @@
+---
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('writing'))
+  .filter((e) => !e.data.draft)
+  .sort((a, b) => +b.data.date - +a.data.date);
+
+const fmt = (d: Date) =>
+  d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+---
+
+<div class="room room--scroll">
+  <div class="room__inner">
+    <h1 class="room__title">writing</h1>
+    <ul class="postlist">
+      {posts.map((e) => (
+        <li>
+          <a class="post" href={`/writing/${e.id}`}>
+            <span class="post__title">{e.data.title}</span>
+            <time class="post__date" datetime={e.data.date.toISOString()}>{fmt(e.data.date)}</time>
+            <span class="post__summary">{e.data.summary}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</div>

@@ -1,77 +1,26 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
-
-const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
+import { CONTACT_LINKS } from '@/lib/nav';
+const ext = (href: string) => href.startsWith('http');
 ---
 
 <BaseLayout title="Contact — Wayleem" description="Get in touch.">
   <main class="page">
-    <a class="page__back" href="/">← map</a>
+    <a class="page__back" href="/#contact">← map</a>
     <h1>Contact</h1>
-    <p class="lede">Email me, find me online, or send a note below.</p>
-
+    <p class="lede">Say hi.</p>
     <ul class="links mono">
-      <li><a href="mailto:wayleemh@gmail.com">wayleemh@gmail.com</a></li>
-      <li><a href="https://github.com/wayleem" rel="me">github.com/wayleem</a></li>
-      <li><a href="/resume.pdf">résumé (pdf)</a></li>
+      {CONTACT_LINKS.map((l) => (
+        <li>
+          <a href={l.href} target={ext(l.href) ? '_blank' : undefined} rel={ext(l.href) ? 'noopener me' : undefined}>
+            {l.label}
+          </a>
+        </li>
+      ))}
     </ul>
-
-    <form id="contact-form" class="form" method="POST" action="/api/contact">
-      <label>Name
-        <input name="name" required maxlength="120" autocomplete="name" />
-      </label>
-      <label>Email
-        <input name="email" type="email" required maxlength="200" autocomplete="email" />
-      </label>
-      <label>Message
-        <textarea name="message" required maxlength="4000" rows="5"></textarea>
-      </label>
-      {siteKey && <div class="cf-turnstile" data-sitekey={siteKey}></div>}
-      <button type="submit">Send</button>
-      <p class="form__status mono" role="status" aria-live="polite"></p>
-    </form>
   </main>
-
-  {siteKey && (
-    <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-  )}
-
-  <script>
-    const form = document.getElementById('contact-form') as HTMLFormElement | null;
-    const status = form?.querySelector('.form__status') as HTMLElement | null;
-    form?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      if (!status) return;
-      status.textContent = 'Sending…';
-      try {
-        const res = await fetch('/api/contact', { method: 'POST', body: new FormData(form) });
-        if (res.ok) {
-          status.textContent = "Sent — thanks, I'll be in touch.";
-          form.reset();
-        } else {
-          status.textContent = 'Something went wrong. Email me directly?';
-        }
-      } catch {
-        status.textContent = 'Network error. Email me directly?';
-      }
-    });
-  </script>
-
-  <style>
-    .links { list-style: none; padding: 0; margin: 0 0 2rem; display: grid; gap: 0.4rem; }
-    .form { display: grid; gap: 1rem; max-width: 34rem; }
-    .form label { display: grid; gap: 0.35rem; font-size: 0.9rem; color: var(--text-dim); }
-    .form input, .form textarea {
-      font: inherit; color: var(--text);
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 8px; padding: 0.6rem 0.7rem;
-    }
-    .form input:focus, .form textarea:focus { border-color: var(--accent); outline: none; }
-    .form button {
-      justify-self: start; font: inherit; font-weight: 600; cursor: pointer;
-      color: var(--bg); background: var(--accent); border: 0;
-      border-radius: 8px; padding: 0.6rem 1.4rem;
-    }
-    .form__status { min-height: 1.2em; color: var(--text-dim); }
-  </style>
 </BaseLayout>
+
+<style>
+  .links { list-style: none; padding: 0; margin: 1.5rem 0 0; display: grid; gap: 0.6rem; font-size: 1.1rem; }
+</style>

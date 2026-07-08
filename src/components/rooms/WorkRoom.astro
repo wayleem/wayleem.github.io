@@ -1,0 +1,33 @@
+---
+import { getCollection } from 'astro:content';
+
+// One mixed, reverse-chronological timeline: jobs + projects on one spine.
+const entries = (await getCollection('work'))
+  .filter((e) => !e.data.draft)
+  .sort((a, b) => +b.data.date - +a.data.date);
+---
+
+<div class="room room--scroll">
+  <div class="room__inner">
+    <h1 class="room__title">work</h1>
+    <ol class="timeline">
+      {entries.map((e) => (
+        <li class={`tl ${e.data.kind === 'job' ? 'tl--job' : 'tl--project'}`}>
+          <a class="tl__link" href={`/work/${e.id}`}>
+            <span class="tl__year">{e.data.date.getFullYear()}</span>
+            <span class="tl__marker" aria-hidden="true"></span>
+            <span class="tl__body">
+              <span class="tl__head">
+                <span class="tl__name">{e.data.title}</span>
+                {e.data.kind === 'job' && e.data.org && <span class="tl__org">· {e.data.org}</span>}
+                <span class="tl__kind">{e.data.kind === 'job' ? 'job' : 'project'}</span>
+              </span>
+              {e.data.period && <span class="tl__period">{e.data.period}</span>}
+              <span class="tl__summary">{e.data.summary}</span>
+            </span>
+          </a>
+        </li>
+      ))}
+    </ol>
+  </div>
+</div>

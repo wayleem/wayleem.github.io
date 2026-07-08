@@ -15,7 +15,7 @@ const fmt = (d: Date) =>
 
 <BaseLayout title={`${entry.data.title} — Wayleem`} description={entry.data.summary}>
   <main class="page">
-    <a class="page__back" href="/?open=writing">← writing</a>
+    <a class="page__back" href="/#writing">← writing</a>
     <h1>{entry.data.title}</h1>
     <time class="meta mono" datetime={entry.data.date.toISOString()}>{fmt(entry.data.date)}</time>
     <div class="prose"><Content /></div>

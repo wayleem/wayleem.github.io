@@ -1,18 +1,20 @@
-// Single source of truth for the map's top-level structure.
-// Feeds the ReactFlow canvas AND the hidden <nav> so they never drift.
+// Single source of truth for the hub map + rooms.
+// Consumed by the hub, the room views, the hidden <nav>, and the transition
+// controller (which reads `dir` to know which way to pan).
 
-export type SectionKind = 'collection' | 'text' | 'links';
+export type PanDir = 'right' | 'down' | 'left' | 'up';
 
 export interface SectionDef {
   id: string;
   label: string;
-  kind: SectionKind;
-  /** No-JS fallback + SEO target (also where the hidden nav points). */
-  href: string;
   /** Placement around the hub, degrees. 0=east, 90=south, 180=west, 270=north. */
   angle: number;
+  /** Which way the camera pans when entering this room (matches the angle). */
+  dir: PanDir;
   /** Flat solid node color. */
   color: string;
+  /** Crawlable/no-JS fallback target for the hidden nav. */
+  href: string;
   hint: string;
 }
 
@@ -20,15 +22,14 @@ export const HUB = {
   id: 'you',
   label: 'wayleem',
   tagline: 'i make stuff',
-  href: '/',
   color: '#26241d',
 };
 
 export const SECTIONS: SectionDef[] = [
-  { id: 'work', label: 'work', kind: 'collection', href: '/work', angle: 0, color: '#3b6fe0', hint: 'work & projects' },
-  { id: 'contact', label: 'contact', kind: 'links', href: '/contact', angle: 90, color: '#ef6a4c', hint: 'say hi' },
-  { id: 'about', label: 'about', kind: 'text', href: '/about', angle: 180, color: '#f2b134', hint: 'who i am' },
-  { id: 'writing', label: 'writing', kind: 'collection', href: '/writing', angle: 270, color: '#33a866', hint: 'notes' },
+  { id: 'work', label: 'work', angle: 0, dir: 'right', color: '#3b6fe0', href: '/work', hint: 'work & projects' },
+  { id: 'contact', label: 'contact', angle: 90, dir: 'down', color: '#ef6a4c', href: '/contact', hint: 'say hi' },
+  { id: 'about', label: 'about', angle: 180, dir: 'left', color: '#f2b134', href: '/about', hint: 'who i am' },
+  { id: 'writing', label: 'writing', angle: 270, dir: 'up', color: '#33a866', href: '/writing', hint: 'notes' },
 ];
 
 export const SECTION_IDS = SECTIONS.map((s) => s.id);
@@ -37,24 +38,23 @@ export function getSection(id: string): SectionDef | undefined {
   return SECTIONS.find((s) => s.id === id);
 }
 
-// Short bio shown inline (as a panel beside the About node). Keep it brief —
-// it lives on the canvas, not a page. Longer version can go on /about.
-export const ABOUT_BLURB =
-  "hey — i'm wayleem. i build web things, trade a little, and tinker with whatever's interesting that week. this site is a map; poke around.";
+// About room copy.
+export const ABOUT = {
+  intro: "hey — i'm wayleem.",
+  body:
+    "i build web things, poke at markets, and tinker with whatever's interesting that week. i like small tools, clean type, and shipping stuff that's a little weird. this site is a map — each node is a room; go have a look.",
+  now: 'now: building this site, trading a little, learning whatever the current rabbit hole demands.',
+};
 
 export interface ContactLink {
   id: string;
   label: string;
   href: string;
-  external?: boolean;
-  /** 'message' opens the send-message modal instead of navigating. */
-  action?: 'message';
 }
 
 export const CONTACT_LINKS: ContactLink[] = [
-  { id: 'message', label: 'message', href: '#', action: 'message' },
-  { id: 'email', label: 'email', href: 'mailto:wayleemh@gmail.com', external: true },
-  { id: 'github', label: 'github', href: 'https://github.com/wayleem', external: true },
-  { id: 'linkedin', label: 'linkedin', href: 'https://www.linkedin.com/in/wayleem', external: true },
-  { id: 'resume', label: 'resume', href: '/resume.pdf', external: true },
+  { id: 'email', label: 'email', href: 'mailto:wayleemh@gmail.com' },
+  { id: 'github', label: 'github', href: 'https://github.com/wayleem' },
+  { id: 'linkedin', label: 'linkedin', href: 'https://www.linkedin.com/in/wayleem' },
+  { id: 'resume', label: 'résumé', href: '/resume.pdf' },
 ];

@@ -2,64 +2,157 @@
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import HiddenNav from '@/components/HiddenNav.astro';
 import ThemeToggle from '@/components/ThemeToggle.astro';
-import Canvas from '@/components/canvas/Canvas';
-import { getCollection } from 'astro:content';
-import { HUB } from '@/lib/nav';
+import Hub from '@/components/hub/Hub.astro';
+import WorkRoom from '@/components/rooms/WorkRoom.astro';
+import WritingRoom from '@/components/rooms/WritingRoom.astro';
+import AboutRoom from '@/components/rooms/AboutRoom.astro';
+import ContactRoom from '@/components/rooms/ContactRoom.astro';
+import { getSection, HUB } from '@/lib/nav';
+import '@/styles/home.css';
 
-// Build-time content snapshot handed to the canvas island as props (no runtime
-// fetch — static + rebuild-on-push).
-const projects = (await getCollection('work'))
-  .filter((e) => !e.data.draft)
-  .sort((a, b) => a.data.order - b.data.order || +b.data.date - +a.data.date)
-  .map((e) => ({ id: e.id, label: e.data.title, href: `/work/${e.id}` }));
-
-const featured = (await getCollection('writing'))
-  .filter((e) => !e.data.draft && e.data.featured)
-  .sort((a, b) => +b.data.date - +a.data.date)
-  .map((e) => ({ id: e.id, label: e.data.title, href: `/writing/${e.id}` }));
-
-// Writing bursts pinned posts + a "see all" escape hatch to the full index.
-const writing = [...featured, { id: '__all', label: 'All writing', href: '/writing', more: true }];
+const dir = (id: string) => getSection(id)!.dir;
 ---
 
-<BaseLayout title="Wayleem" immersive>
+<BaseLayout title="wayleem" immersive>
   <HiddenNav />
 
-  <div class="canvas-root">
-    <Canvas client:only="react" projects={projects} writing={writing} />
+  <div class="stage">
+    <section class="view" data-view="hub"><Hub /></section>
+    <section class="view" data-view="work" data-dir={dir('work')}><WorkRoom /></section>
+    <section class="view" data-view="writing" data-dir={dir('writing')}><WritingRoom /></section>
+    <section class="view" data-view="about" data-dir={dir('about')}><AboutRoom /></section>
+    <section class="view" data-view="contact" data-dir={dir('contact')}><ContactRoom /></section>
   </div>
 
   <header class="overlay overlay--top">
-    <a class="brand mono" href="/">{HUB.label}<span>.com</span></a>
+    <a class="brand mono" href="#" data-goto="hub">{HUB.label}<span>.com</span></a>
     <ThemeToggle />
   </header>
 
-  <p class="overlay overlay--hint mono" aria-hidden="true">
-    drag to pan · scroll to zoom · click a node
-  </p>
-</BaseLayout>
+  <button class="overlay back-btn mono" type="button" data-back hidden>← back</button>
+  <p class="hint mono" aria-hidden="true">click a node</p>
 
-<style>
-  .overlay { position: fixed; z-index: 10; }
-  .overlay--top {
-    top: 0; left: 0; right: 0;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 1rem 1.25rem;
-    pointer-events: none;
+  <script>
+  // Directional room controller: hash drives which view is active; each room
+  // pans in from its node's side (data-dir) and reverse-pans back to the hub.
+  const DIRS = { right: [1, 0], down: [0, 1], left: [-1, 0], up: [0, -1] };
+  let current = 'hub';
+  let animating = false;
+
+  const stageEl = () => document.querySelector('.stage');
+  const viewEl = (id) => document.querySelector(`.stage .view[data-view="${id}"]`);
+  const dirOf = (id) => {
+    const el = viewEl(id);
+    const d = el && el.dataset.dir;
+    return d ? DIRS[d] : [0, 0];
+  };
+
+  function place(el, x, y, animated) {
+    el.style.transition = animated ? '' : 'none';
+    el.style.transform = `translate(${x * 100}%, ${y * 100}%)`;
   }
-  .overlay--top > * { pointer-events: auto; }
-  .brand { font-weight: 700; font-size: 1rem; color: var(--text); letter-spacing: -0.02em; }
-  .brand:hover { text-decoration: none; }
-  .brand span { color: var(--text-dim); }
-  .overlay--hint {
-    bottom: 1rem; left: 50%; transform: translateX(-50%);
-    margin: 0; font-size: 0.72rem; color: var(--text-dim);
+
+  function chrome(id) {
+    const back = document.querySelector('[data-back]');
+    if (back) back.hidden = id === 'hub';
+    document.body.classList.toggle('in-room', id !== 'hub');
+    const s = stageEl();
+    if (s) s.dataset.active = id;
   }
-  :global(.overlay-btn) {
-    background: var(--surface); border: 1px solid var(--border);
-    color: var(--text-dim); border-radius: 8px; padding: 0.35rem 0.7rem;
-    font-size: 0.72rem; cursor: pointer;
+
+  function show(id, animated) {
+    const to = viewEl(id);
+    if (!to) return;
+    const from = viewEl(current);
+    if (id === current) {
+      chrome(id);
+      return;
+    }
+    // Direction vector of the room involved (hub<->room).
+    const [vx, vy] = id !== 'hub' ? dirOf(id) : dirOf(current);
+
+    to.classList.add('is-visible');
+    if (id !== 'hub') place(to, vx, vy, false); // room starts off on its side
+    else place(to, -vx, -vy, false); // hub starts off opposite the leaving room
+    void to.offsetWidth; // reflow so the start position sticks
+
+    const finish = () => {
+      if (from && from !== to) from.classList.remove('is-visible');
+      current = id;
+      animating = false;
+      chrome(id);
+    };
+
+    const outTo = () =>
+      id !== 'hub' ? place(from, -vx, -vy, animated) : place(from, vx, vy, animated);
+
+    if (!animated) {
+      place(to, 0, 0, false);
+      if (from && from !== to) outTo();
+      finish();
+      return;
+    }
+
+    animating = true;
+    requestAnimationFrame(() => {
+      place(to, 0, 0, true);
+      if (from && from !== to) outTo();
+    });
+    setTimeout(finish, 580);
   }
-  :global(.overlay-btn:hover) { border-color: var(--border-strong); color: var(--text); }
-  @media (max-width: 640px) { .overlay--hint { font-size: 0.64rem; } }
-</style>
+
+  function navigate(id) {
+    if (animating) return;
+    history.pushState({ view: id }, '', id === 'hub' ? location.pathname : '#' + id);
+    show(id, true);
+  }
+
+  function syncFromHash(animated) {
+    const id = (location.hash || '').slice(1);
+    show(id && viewEl(id) ? id : 'hub', animated);
+  }
+
+  document.addEventListener('click', (e) => {
+    const t = e.target;
+    if (!(t instanceof Element)) return;
+    const goto = t.closest('[data-goto]');
+    if (goto) {
+      e.preventDefault();
+      navigate(goto.getAttribute('data-goto'));
+      return;
+    }
+    if (t.closest('[data-back]')) {
+      e.preventDefault();
+      navigate('hub');
+    }
+  });
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && current !== 'hub') navigate('hub');
+  });
+  window.addEventListener('popstate', () => syncFromHash(true));
+
+  function init(stage) {
+    current = 'hub';
+    stage.querySelectorAll('.view').forEach((v) => {
+      const id = v.dataset.view;
+      if (id === 'hub') {
+        v.classList.add('is-visible');
+        place(v, 0, 0, false);
+      } else {
+        const [x, y] = dirOf(id);
+        v.classList.remove('is-visible');
+        place(v, x, y, false);
+      }
+    });
+    syncFromHash(false);
+  }
+  function boot() {
+    const stage = stageEl();
+    if (!stage || stage.dataset.booted) return;
+    stage.dataset.booted = '1';
+    init(stage);
+  }
+  document.addEventListener('astro:page-load', boot);
+  boot();
+  </script>
+</BaseLayout>
