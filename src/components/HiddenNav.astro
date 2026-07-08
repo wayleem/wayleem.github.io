@@ -1,0 +1,37 @@
+---
+// Visually hidden but present in the static HTML: guarantees crawlers and
+// screen-reader/keyboard users can reach every destination regardless of the
+// canvas island (which is client:only and invisible to bots). Mirrors the map.
+import { getCollection } from 'astro:content';
+
+const work = (await getCollection('work'))
+  .filter((e) => !e.data.draft)
+  .sort((a, b) => a.data.order - b.data.order);
+const writing = (await getCollection('writing'))
+  .filter((e) => !e.data.draft)
+  .sort((a, b) => +b.data.date - +a.data.date);
+---
+
+<nav class="sr-only" aria-label="Site navigation">
+  <ul>
+    <li><a href="/">Home — Wayleem</a></li>
+    <li><a href="/about">About</a></li>
+    <li><a href="/contact">Contact</a></li>
+    <li>
+      <a href="/work">Projects</a>
+      <ul>
+        {work.map((e) => (
+          <li><a href={`/work/${e.id}`}>{e.data.title}</a></li>
+        ))}
+      </ul>
+    </li>
+    <li>
+      <a href="/writing">Writing</a>
+      <ul>
+        {writing.map((e) => (
+          <li><a href={`/writing/${e.id}`}>{e.data.title}</a></li>
+        ))}
+      </ul>
+    </li>
+  </ul>
+</nav>

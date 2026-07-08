@@ -1,0 +1,39 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const items = (await getCollection('work')).filter((e) => !e.data.draft);
+  return items.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+---
+
+<BaseLayout title={`${entry.data.title} — Wayleem`} description={entry.data.summary}>
+  <main class="page">
+    <a class="page__back" href="/?open=projects">← projects</a>
+    <h1>{entry.data.title}</h1>
+    <p class="lede">{entry.data.summary}</p>
+
+    {entry.data.cover && <img class="cover" src={entry.data.cover} alt="" />}
+
+    <p class="meta mono">
+      {(entry.data.repo || entry.data.demo) && (
+        <>
+          {entry.data.repo && <a href={entry.data.repo}>repo ↗</a>}
+          {entry.data.repo && entry.data.demo && ' · '}
+          {entry.data.demo && <a href={entry.data.demo}>live demo ↗</a>}
+        </>
+      )}
+    </p>
+
+    <div class="prose"><Content /></div>
+  </main>
+</BaseLayout>
+
+<style>
+  .cover { display: block; width: 100%; border-radius: var(--radius); margin: 1.5rem 0; }
+  .meta { color: var(--text-dim); font-size: 0.85rem; margin-bottom: 2rem; }
+</style>

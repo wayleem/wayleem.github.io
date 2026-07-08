@@ -1,46 +1,31 @@
 {
-  "name": "wayleem.com",
-  "private": true,
-  "version": "0.0.0",
+  "name": "wayleem-com",
   "type": "module",
+  "version": "0.1.0",
+  "private": true,
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "wrangler dev ./dist/_worker.js/index.js",
+    "check": "astro check",
+    "astro": "astro"
   },
   "dependencies": {
-    "@fortawesome/fontawesome-svg-core": "^6.4.2",
-    "@fortawesome/free-regular-svg-icons": "^6.4.2",
-    "@fortawesome/free-solid-svg-icons": "^6.4.2",
-    "@react-three/drei": "^9.80.2",
-    "@react-three/fiber": "^8.13.6",
-    "@reduxjs/toolkit": "^1.9.5",
-    "@types/file-saver": "^2.0.5",
-    "@types/three": "^0.155.0",
-    "daisyui": "^3.5.1",
-    "file-saver": "^2.0.5",
-    "framer-motion": "^10.16.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-paginate": "^8.2.0",
-    "react-redux": "^8.1.2",
-    "react-router-dom": "^6.15.0",
-    "three": "^0.155.0"
+    "@astrojs/cloudflare": "^12",
+    "@astrojs/mdx": "^4",
+    "@astrojs/react": "^4",
+    "@astrojs/sitemap": "^3",
+    "@keystatic/astro": "^5",
+    "@keystatic/core": "^0.5",
+    "@xyflow/react": "^12",
+    "astro": "^5",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "resend": "^4"
   },
   "devDependencies": {
-    "@types/react": "^18.2.15",
-    "@types/react-dom": "^18.2.7",
-    "@typescript-eslint/eslint-plugin": "^6.0.0",
-    "@typescript-eslint/parser": "^6.0.0",
-    "@vitejs/plugin-react-swc": "^3.3.2",
-    "autoprefixer": "^10.4.14",
-    "eslint": "^8.45.0",
-    "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-react-refresh": "^0.4.3",
-    "postcss": "^8.4.27",
-    "tailwindcss": "^3.3.3",
-    "typescript": "^5.0.2",
-    "vite": "^4.4.5"
+    "@types/react": "^18.3",
+    "@types/react-dom": "^18.3",
+    "wrangler": "^3"
   }
 }

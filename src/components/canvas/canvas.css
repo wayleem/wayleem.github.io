@@ -1,0 +1,106 @@
+/* Full-bleed canvas shell (element lives in index.astro; styles bundle here). */
+body.is-immersive { overflow: hidden; height: 100dvh; overscroll-behavior: none; }
+.canvas-root {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+}
+.react-flow { background: var(--bg); }
+
+/* ── Nodes ─────────────────────────────────────────────────────────────── */
+.node {
+  position: relative;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  transition: border-color 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
+}
+.node__hit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.7rem 1rem;
+  min-width: 8rem;
+  text-align: left;
+  color: var(--text);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+}
+.node__hit:hover { text-decoration: none; }
+.node:hover { border-color: var(--border-strong); transform: translateY(-1px); }
+.node__label { font-size: 0.98rem; font-weight: 600; letter-spacing: -0.01em; }
+.node__meta {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+}
+
+.node--hub {
+  border-color: var(--hub);
+  border-width: 1.5px;
+  padding: 0.9rem 1.3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  background: linear-gradient(180deg, var(--surface), var(--surface-2));
+}
+.node--hub .node__label { font-size: 1.15rem; color: var(--hub); }
+.node--hub .node__meta { text-align: center; }
+
+.node--section.is-open { border-color: var(--accent); }
+.node--section .node__hit:focus-visible { outline-offset: -2px; }
+
+.node--item { border-style: dashed; }
+.node--item .node__label { font-size: 0.88rem; font-weight: 500; }
+.node--more { border-style: solid; border-color: var(--accent); }
+.node--more .node__label { color: var(--accent); }
+
+/* Centered, invisible handles → straight edges radiate from node centers. */
+.rf-handle {
+  opacity: 0;
+  pointer-events: none;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%);
+  min-width: 1px;
+  min-height: 1px;
+  border: 0;
+}
+
+/* ── Edges ─────────────────────────────────────────────────────────────── */
+.react-flow__edge.rf-edge .react-flow__edge-path {
+  stroke: var(--edge);
+  stroke-width: 1.5;
+}
+.react-flow__edge.rf-edge--active .react-flow__edge-path {
+  stroke: var(--edge-active);
+  stroke-width: 2;
+}
+
+/* ── Controls (the recenter / zoom widget) ─────────────────────────────── */
+.react-flow__controls {
+  box-shadow: var(--shadow);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.react-flow__controls-button {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  width: 30px;
+  height: 30px;
+}
+.react-flow__controls-button:hover { background: var(--surface-2); }
+.react-flow__controls-button svg { fill: var(--text-dim); }
+
+.react-flow__attribution {
+  background: transparent;
+  font-size: 0.62rem;
+}
+.react-flow__attribution a { color: var(--text-dim); }

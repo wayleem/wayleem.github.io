@@ -1,0 +1,26 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const items = (await getCollection('work'))
+  .filter((e) => !e.data.draft)
+  .sort((a, b) => a.data.order - b.data.order || +b.data.date - +a.data.date);
+---
+
+<BaseLayout title="Projects — Wayleem" description="Things I've built.">
+  <main class="page">
+    <a class="page__back" href="/?open=projects">← map</a>
+    <h1>Projects</h1>
+    <p class="lede">Things I've built.</p>
+
+    <div class="grid">
+      {items.map((e) => (
+        <a class="card" href={`/work/${e.id}`}>
+          <h3>{e.data.title}</h3>
+          <p>{e.data.summary}</p>
+          <time datetime={e.data.date.toISOString()}>{e.data.date.getFullYear()}</time>
+        </a>
+      ))}
+    </div>
+  </main>
+</BaseLayout>

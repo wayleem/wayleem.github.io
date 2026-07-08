@@ -1,0 +1,65 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import HiddenNav from '@/components/HiddenNav.astro';
+import ThemeToggle from '@/components/ThemeToggle.astro';
+import Canvas from '@/components/canvas/Canvas';
+import { getCollection } from 'astro:content';
+import { HUB } from '@/lib/nav';
+
+// Build-time content snapshot handed to the canvas island as props (no runtime
+// fetch — static + rebuild-on-push).
+const projects = (await getCollection('work'))
+  .filter((e) => !e.data.draft)
+  .sort((a, b) => a.data.order - b.data.order || +b.data.date - +a.data.date)
+  .map((e) => ({ id: e.id, label: e.data.title, href: `/work/${e.id}` }));
+
+const featured = (await getCollection('writing'))
+  .filter((e) => !e.data.draft && e.data.featured)
+  .sort((a, b) => +b.data.date - +a.data.date)
+  .map((e) => ({ id: e.id, label: e.data.title, href: `/writing/${e.id}` }));
+
+// Writing bursts pinned posts + a "see all" escape hatch to the full index.
+const writing = [...featured, { id: '__all', label: 'All writing', href: '/writing', more: true }];
+---
+
+<BaseLayout title="Wayleem" immersive>
+  <HiddenNav />
+
+  <div class="canvas-root">
+    <Canvas client:only="react" projects={projects} writing={writing} />
+  </div>
+
+  <header class="overlay overlay--top">
+    <a class="brand mono" href="/">{HUB.label}<span>.com</span></a>
+    <ThemeToggle />
+  </header>
+
+  <p class="overlay overlay--hint mono" aria-hidden="true">
+    drag to pan · scroll to zoom · click a node
+  </p>
+</BaseLayout>
+
+<style>
+  .overlay { position: fixed; z-index: 10; }
+  .overlay--top {
+    top: 0; left: 0; right: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1rem 1.25rem;
+    pointer-events: none;
+  }
+  .overlay--top > * { pointer-events: auto; }
+  .brand { font-weight: 700; font-size: 1rem; color: var(--text); letter-spacing: -0.02em; }
+  .brand:hover { text-decoration: none; }
+  .brand span { color: var(--text-dim); }
+  .overlay--hint {
+    bottom: 1rem; left: 50%; transform: translateX(-50%);
+    margin: 0; font-size: 0.72rem; color: var(--text-dim);
+  }
+  :global(.overlay-btn) {
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--text-dim); border-radius: 8px; padding: 0.35rem 0.7rem;
+    font-size: 0.72rem; cursor: pointer;
+  }
+  :global(.overlay-btn:hover) { border-color: var(--border-strong); color: var(--text); }
+  @media (max-width: 640px) { .overlay--hint { font-size: 0.64rem; } }
+</style>

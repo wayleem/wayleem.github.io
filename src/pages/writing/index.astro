@@ -1,0 +1,29 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('writing'))
+  .filter((e) => !e.data.draft)
+  .sort((a, b) => +b.data.date - +a.data.date);
+
+const fmt = (d: Date) =>
+  d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+---
+
+<BaseLayout title="Writing — Wayleem" description="Notes and posts.">
+  <main class="page">
+    <a class="page__back" href="/?open=writing">← map</a>
+    <h1>Writing</h1>
+    <p class="lede">Notes, essays, and things I'm figuring out.</p>
+
+    <div class="grid">
+      {posts.map((e) => (
+        <a class="card" href={`/writing/${e.id}`}>
+          <h3>{e.data.title}</h3>
+          <p>{e.data.summary}</p>
+          <time datetime={e.data.date.toISOString()}>{fmt(e.data.date)}</time>
+        </a>
+      ))}
+    </div>
+  </main>
+</BaseLayout>

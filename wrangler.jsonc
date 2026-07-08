@@ -1,0 +1,25 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "wayleem-com",
+  "main": "./dist/_worker.js/index.js",
+  "compatibility_date": "2025-05-05",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS"
+  },
+  "observability": { "enabled": true }
+
+  // Astro 5's session support (auto-enabled by @astrojs/cloudflare) wants a KV
+  // binding named SESSION. This site doesn't use sessions, so it's optional —
+  // add it only if you start using Astro.session:
+  //
+  //   npx wrangler kv namespace create SESSION
+  //
+  // then uncomment and paste the id:
+  //
+  // "kv_namespaces": [{ "binding": "SESSION", "id": "<id-from-command-above>" }]
+  //
+  // Secrets (RESEND_API_KEY, TURNSTILE_SECRET_KEY, KEYSTATIC_*) are set with:
+  //   npx wrangler secret put RESEND_API_KEY
+}
