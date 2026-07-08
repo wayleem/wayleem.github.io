@@ -8,6 +8,10 @@
     "directory": "./dist",
     "binding": "ASSETS"
   },
+  "routes": [
+    { "pattern": "wayleem.com", "custom_domain": true },
+    { "pattern": "www.wayleem.com", "custom_domain": true }
+  ],
   "observability": { "enabled": true }
 
   // Astro 5's session support (auto-enabled by @astrojs/cloudflare) wants a KV

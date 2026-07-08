@@ -11,7 +11,7 @@ const storage = import.meta.env.DEV
   ? ({ kind: 'local' } as const)
   : ({
       kind: 'github',
-      repo: { owner: 'wayleem', name: 'wayleem.com' }, // TODO: set to your repo
+      repo: { owner: 'wayleem', name: 'wayleem.github.io' },
     } as const);
 
 const tags = fields.array(fields.text({ label: 'Tag' }), {
