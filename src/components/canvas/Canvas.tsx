@@ -6,12 +6,13 @@ import {
   Controls,
   ReactFlowProvider,
   useReactFlow,
+  type NodeMouseHandler,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import './canvas.css';
 import { nodeTypes } from './nodes';
-import { buildGraph, extentFor, type CanvasData } from './graph';
-import { COLLECTION_IDS } from '@/lib/nav';
+import { buildGraph, extentFor, type CanvasData, type ItemLink } from './graph';
+import { COLLECTION_IDS, type SectionDef } from '@/lib/nav';
 
 function readOpenParam(): Set<string> {
   if (typeof window === 'undefined') return new Set();
@@ -31,7 +32,7 @@ function Flow({ data }: { data: CanvasData }) {
   const [expanded, setExpanded] = useState<Set<string>>(() => readOpenParam());
   const { fitView } = useReactFlow();
 
-  const onToggle = useCallback((id: string) => {
+  const toggle = useCallback((id: string) => {
     setExpanded((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -41,12 +42,23 @@ function Flow({ data }: { data: CanvasData }) {
     });
   }, []);
 
-  // Camera stays put on burst (spec: "radial burst in place"). We only refit on
-  // resize so mobile always frames the whole map.
-  const { nodes, edges } = useMemo(
-    () => buildGraph({ data, expanded, onToggle }),
-    [data, expanded, onToggle],
+  // Single interaction path (also what re-enables pointer events on nodes):
+  // collections toggle their burst; leaves + items navigate. Camera stays put.
+  const onNodeClick: NodeMouseHandler = useCallback(
+    (_event, node) => {
+      if (node.type === 'section') {
+        const section = (node.data as { section: SectionDef }).section;
+        if (section.kind === 'collection') toggle(section.id);
+        else window.location.href = section.href;
+      } else if (node.type === 'item') {
+        const item = (node.data as { item: ItemLink }).item;
+        window.location.href = item.href;
+      }
+    },
+    [toggle],
   );
+
+  const { nodes, edges } = useMemo(() => buildGraph({ data, expanded }), [data, expanded]);
 
   useEffect(() => {
     const onResize = () => fitView({ padding: 0.3, duration: 200 });
@@ -59,6 +71,7 @@ function Flow({ data }: { data: CanvasData }) {
       nodes={nodes}
       edges={edges}
       nodeTypes={nodeTypes}
+      onNodeClick={onNodeClick}
       nodesDraggable={false}
       nodesConnectable={false}
       elementsSelectable={false}

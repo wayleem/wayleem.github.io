@@ -2,7 +2,7 @@ import { Handle, Position, type NodeProps } from '@xyflow/react';
 import type { SectionDef } from '@/lib/nav';
 import type { ItemLink } from './graph';
 
-// Centered, invisible handles so straight edges radiate from node centers.
+// Centered, invisible handles so straight edges radiate from circle centers.
 function CenterHandles() {
   return (
     <>
@@ -12,53 +12,35 @@ function CenterHandles() {
   );
 }
 
+// Nodes are purely visual (a circle + a label beneath). All interaction is
+// handled by React Flow's onNodeClick in Canvas.tsx — which also re-enables
+// pointer events on the node. Crawlable/keyboard links live in the hidden nav.
+
 export function HubNode({ data }: NodeProps) {
-  const { label, tagline } = data as { label: string; tagline: string };
+  const { label } = data as { label: string };
   return (
-    <div className="node node--hub">
+    <div className="cnode cnode--hub" title={label}>
       <CenterHandles />
-      <span className="node__label">{label}</span>
-      <span className="node__meta mono">{tagline}</span>
+      <span className="cnode__dot" aria-hidden="true" />
+      <span className="cnode__label">{label}</span>
     </div>
   );
 }
 
 export function SectionNode({ data }: NodeProps) {
-  const { section, expanded, itemCount, onToggle } = data as {
-    section: SectionDef;
-    expanded: boolean;
-    itemCount: number;
-    onToggle: () => void;
-  };
-  const isCollection = section.kind === 'collection';
-
-  // Collections toggle a burst (button); leaves route (anchor). Both are real,
-  // focusable elements — keyboard + screen readers work, and the anchor is the
-  // no-JS fallback (goes to the index page).
-  const inner = isCollection ? (
-    <button
-      type="button"
-      className="node__hit nodrag nopan"
-      aria-expanded={expanded}
-      onClick={onToggle}
-      title={section.hint}
-    >
-      <span className="node__label">{section.label}</span>
-      <span className="node__meta mono">
-        {expanded ? '− collapse' : `+ ${itemCount || ''} ${section.hint}`.trim()}
-      </span>
-    </button>
-  ) : (
-    <a className="node__hit nodrag nopan" href={section.href} title={section.hint}>
-      <span className="node__label">{section.label}</span>
-      <span className="node__meta mono">{section.hint} →</span>
-    </a>
-  );
-
+  const { section, expanded } = data as { section: SectionDef; expanded: boolean };
+  const cls = [
+    'cnode cnode--section',
+    section.kind === 'collection' ? 'is-collection' : 'is-leaf',
+    expanded ? 'is-open' : '',
+  ]
+    .join(' ')
+    .trim();
   return (
-    <div className={`node node--section${expanded ? ' is-open' : ''}`}>
+    <div className={cls} title={section.label}>
       <CenterHandles />
-      {inner}
+      <span className="cnode__dot" aria-hidden="true" />
+      <span className="cnode__label">{section.label}</span>
     </div>
   );
 }
@@ -66,12 +48,10 @@ export function SectionNode({ data }: NodeProps) {
 export function ItemNode({ data }: NodeProps) {
   const { item } = data as { item: ItemLink };
   return (
-    <div className={`node node--item${item.more ? ' node--more' : ''}`}>
+    <div className={`cnode cnode--item${item.more ? ' is-more' : ''}`} title={item.label}>
       <CenterHandles />
-      <a className="node__hit nodrag nopan" href={item.href}>
-        <span className="node__label">{item.label}</span>
-        {item.more ? <span className="node__meta mono">see all →</span> : null}
-      </a>
+      <span className="cnode__dot" aria-hidden="true" />
+      <span className="cnode__label">{item.label}</span>
     </div>
   );
 }

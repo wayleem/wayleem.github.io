@@ -45,10 +45,9 @@ function itemsFor(id: string, data: CanvasData): ItemLink[] {
 export interface BuildArgs {
   data: CanvasData;
   expanded: Set<string>;
-  onToggle: (id: string) => void;
 }
 
-export function buildGraph({ data, expanded, onToggle }: BuildArgs): {
+export function buildGraph({ data, expanded }: BuildArgs): {
   nodes: Node[];
   edges: Edge[];
 } {
@@ -73,8 +72,6 @@ export function buildGraph({ data, expanded, onToggle }: BuildArgs): {
       data: {
         section: s,
         expanded: isExpanded,
-        itemCount: items.length,
-        onToggle: () => onToggle(s.id),
       },
       draggable: false,
     });
