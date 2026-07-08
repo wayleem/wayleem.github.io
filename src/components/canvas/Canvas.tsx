@@ -68,11 +68,13 @@ function Flow({ data }: { data: CanvasData }) {
 
   const { nodes, edges } = useMemo(() => buildGraph({ data, expanded }), [data, expanded]);
 
-  // Auto-pan to a section's cluster right after it expands (great on mobile).
+  // Auto-pan to a section's cluster right after it expands — MOBILE ONLY.
+  // On desktop the camera stays put.
   useEffect(() => {
     if (!pendingFocus.current) return;
     const id = pendingFocus.current;
     pendingFocus.current = null;
+    if (!window.matchMedia('(max-width: 768px)').matches) return;
     const ids = clusterNodeIds(id, nodes).map((i) => ({ id: i }));
     const raf = requestAnimationFrame(() =>
       fitView({ nodes: ids, padding: 0.3, duration: 500, maxZoom: 1.2 }),
