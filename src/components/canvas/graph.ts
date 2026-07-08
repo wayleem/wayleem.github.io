@@ -86,7 +86,7 @@ export function buildGraph({ data, expanded }: BuildArgs): { nodes: Node[]; edge
         data: { text: ABOUT_BLURB, color: s.color },
         draggable: false,
       });
-      edges.push({ id: `e-${s.id}-${id}`, source: s.id, target: id, type: 'straight', className: 'rf-edge rf-edge--active' });
+      // No edge — the panel's position next to About already implies it.
       continue;
     }
 
@@ -106,7 +106,10 @@ export function buildGraph({ data, expanded }: BuildArgs): { nodes: Node[]; edge
         data: { item, color: s.color },
         draggable: false,
       });
-      edges.push({ id: `e-${s.id}-${id}`, source: s.id, target: id, type: 'straight', className: 'rf-edge rf-edge--active' });
+      // Writing posts stand on their own — position implies the link, no edge.
+      if (s.id !== 'writing') {
+        edges.push({ id: `e-${s.id}-${id}`, source: s.id, target: id, type: 'straight', className: 'rf-edge rf-edge--active' });
+      }
     });
   }
 
