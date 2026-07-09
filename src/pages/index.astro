@@ -1,13 +1,11 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import HiddenNav from '@/components/HiddenNav.astro';
-import ThemeToggle from '@/components/ThemeToggle.astro';
 import Hub from '@/components/hub/Hub.astro';
 import WorkRoom from '@/components/rooms/WorkRoom.astro';
 import WritingRoom from '@/components/rooms/WritingRoom.astro';
 import AboutRoom from '@/components/rooms/AboutRoom.astro';
 import ContactRoom from '@/components/rooms/ContactRoom.astro';
-import { HUB } from '@/lib/nav';
 import '@/styles/home.css';
 ---
 
@@ -23,12 +21,6 @@ import '@/styles/home.css';
       <section class="area" data-area="contact"><ContactRoom /></section>
     </div>
   </div>
-
-  <header class="overlay overlay--top">
-    <a class="brand mono" href="#" data-goto="hub">{HUB.label}<span>.com</span></a>
-    <ThemeToggle />
-  </header>
-  <p class="hint mono" aria-hidden="true">click a node</p>
 
   <script>
   // One continuous plane, locked camera. Focusing a section translates the

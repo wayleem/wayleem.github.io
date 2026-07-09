@@ -5,29 +5,36 @@ import { getCollection } from 'astro:content';
 const entries = (await getCollection('work'))
   .filter((e) => !e.data.draft)
   .sort((a, b) => +b.data.date - +a.data.date);
+
+// Entries link to their live site / repo if they have one, else the detail page.
+const linkFor = (d: { demo?: string | null; repo?: string | null }, id: string) =>
+  d.demo || d.repo || `/work/${id}`;
 ---
 
 <div class="room room--scroll">
   <div class="room__inner">
     <h1 class="room__title">work</h1>
     <ol class="timeline">
-      {entries.map((e) => (
-        <li class={`tl ${e.data.kind === 'job' ? 'tl--job' : 'tl--project'}`}>
-          <a class="tl__link" href={`/work/${e.id}`}>
-            <span class="tl__year">{e.data.date.getFullYear()}</span>
-            <span class="tl__marker" aria-hidden="true"></span>
-            <span class="tl__body">
-              <span class="tl__head">
-                <span class="tl__name">{e.data.title}</span>
-                {e.data.kind === 'job' && e.data.org && <span class="tl__org">· {e.data.org}</span>}
-                <span class="tl__kind">{e.data.kind === 'job' ? 'job' : 'project'}</span>
+      {entries.map((e) => {
+        const href = linkFor(e.data, e.id);
+        const ext = href.startsWith('http');
+        return (
+          <li class={`tl ${e.data.kind === 'job' ? 'tl--job' : 'tl--project'}`}>
+            <a class="tl__link" href={href} target={ext ? '_blank' : undefined} rel={ext ? 'noopener' : undefined}>
+              <span class="tl__year">{e.data.date.getFullYear()}</span>
+              <span class="tl__marker" aria-hidden="true"></span>
+              <span class="tl__body">
+                <span class="tl__head">
+                  <span class="tl__name">{e.data.title}{ext && <span aria-hidden="true"> ↗</span>}</span>
+                  {e.data.kind === 'job' && e.data.org && <span class="tl__org">· {e.data.org}</span>}
+                </span>
+                {e.data.period && <span class="tl__period">{e.data.period}</span>}
+                <span class="tl__summary">{e.data.summary}</span>
               </span>
-              {e.data.period && <span class="tl__period">{e.data.period}</span>}
-              <span class="tl__summary">{e.data.summary}</span>
-            </span>
-          </a>
-        </li>
-      ))}
+            </a>
+          </li>
+        );
+      })}
     </ol>
   </div>
 </div>
