@@ -10,7 +10,8 @@ import ContactRoom from '@/components/rooms/ContactRoom.astro';
 import { getSection, HUB } from '@/lib/nav';
 import '@/styles/home.css';
 
-const dir = (id: string) => getSection(id)!.dir;
+const S = (id: string) => getSection(id)!;
+const work = S('work'), writing = S('writing'), about = S('about'), contact = S('contact');
 ---
 
 <BaseLayout title="wayleem" immersive>
@@ -18,10 +19,10 @@ const dir = (id: string) => getSection(id)!.dir;
 
   <div class="stage">
     <section class="view" data-view="hub"><Hub /></section>
-    <section class="view" data-view="work" data-dir={dir('work')}><WorkRoom /></section>
-    <section class="view" data-view="writing" data-dir={dir('writing')}><WritingRoom /></section>
-    <section class="view" data-view="about" data-dir={dir('about')}><AboutRoom /></section>
-    <section class="view" data-view="contact" data-dir={dir('contact')}><ContactRoom /></section>
+    <section class="view" data-view="work" data-dir={work.dir} data-color={work.color} data-label={work.label}><WorkRoom /></section>
+    <section class="view" data-view="writing" data-dir={writing.dir} data-color={writing.color} data-label={writing.label}><WritingRoom /></section>
+    <section class="view" data-view="about" data-dir={about.dir} data-color={about.color} data-label={about.label}><AboutRoom /></section>
+    <section class="view" data-view="contact" data-dir={contact.dir} data-color={contact.color} data-label={contact.label}><ContactRoom /></section>
   </div>
 
   <header class="overlay overlay--top">
@@ -29,7 +30,12 @@ const dir = (id: string) => getSection(id)!.dir;
     <ThemeToggle />
   </header>
 
-  <button class="overlay back-btn mono" type="button" data-back hidden>← back</button>
+  <!-- The originating section's node, pinned in the corner — it IS the back button. -->
+  <button class="overlay origin-node" type="button" data-back hidden aria-label="Back to map" title="back to map">
+    <span class="origin-node__dot"></span>
+    <span class="origin-node__label mono"></span>
+    <span class="origin-node__hint mono" aria-hidden="true">← back</span>
+  </button>
   <p class="hint mono" aria-hidden="true">click a node</p>
 
   <script>
@@ -53,9 +59,20 @@ const dir = (id: string) => getSection(id)!.dir;
   }
 
   function chrome(id) {
-    const back = document.querySelector('[data-back]');
-    if (back) back.hidden = id === 'hub';
-    document.body.classList.toggle('in-room', id !== 'hub');
+    const inRoom = id !== 'hub';
+    document.body.classList.toggle('in-room', inRoom);
+    // Pin the originating section's node in the corner as the back control.
+    const origin = document.querySelector('.origin-node');
+    if (origin) {
+      origin.hidden = !inRoom;
+      const v = inRoom ? viewEl(id) : null;
+      if (v) {
+        const dot = origin.querySelector('.origin-node__dot');
+        const label = origin.querySelector('.origin-node__label');
+        if (dot) dot.style.background = v.dataset.color || '';
+        if (label) label.textContent = v.dataset.label || '';
+      }
+    }
     const s = stageEl();
     if (s) s.dataset.active = id;
   }

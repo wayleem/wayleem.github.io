@@ -135,14 +135,33 @@ body.is-immersive { overflow: hidden; height: 100dvh; overscroll-behavior: none;
 .brand span { color: var(--text-dim); }
 body.in-room .brand { display: none; }
 
-.back-btn {
+/* The originating section node, pinned top-left = the back button. */
+.origin-node {
   top: 1rem; left: 1.25rem;
-  display: none; align-items: center; gap: 0.3rem;
-  background: var(--surface); border: 1px solid var(--border); color: var(--text);
-  border-radius: 8px; padding: 0.35rem 0.75rem; font-size: 0.78rem; cursor: pointer;
+  display: none; flex-direction: column; align-items: center; gap: 0.3rem;
+  background: none; border: 0; padding: 0; cursor: pointer;
 }
-.back-btn:hover { border-color: var(--border-strong); }
-body.in-room .back-btn { display: inline-flex; }
+body.in-room .origin-node {
+  display: inline-flex;
+  animation: origin-pop 0.32s cubic-bezier(0.2, 0.85, 0.3, 1.25) both;
+}
+.origin-node__dot {
+  width: 46px; height: 46px; border-radius: 50%;
+  box-shadow: 0 5px 16px rgba(20, 20, 15, 0.2);
+  transition: transform 0.16s cubic-bezier(0.2, 0.8, 0.3, 1.1);
+}
+.origin-node:hover .origin-node__dot { transform: scale(1.1); }
+.origin-node:active .origin-node__dot { transform: scale(1.02); }
+.origin-node__label { font-size: 0.7rem; font-weight: 600; color: var(--text-dim); }
+.origin-node__hint {
+  font-size: 0.58rem; color: var(--text-dim);
+  opacity: 0; margin-top: -0.15rem; transition: opacity 0.15s ease;
+}
+.origin-node:hover .origin-node__hint { opacity: 1; }
+@keyframes origin-pop {
+  from { transform: scale(0.4); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
 
 .overlay-btn {
   background: var(--surface); border: 1px solid var(--border);
@@ -166,4 +185,5 @@ body.in-room .hint { display: none; }
 @media (prefers-reduced-motion: reduce) {
   .view { transition: none; }
   .hnode__dot { transition: none; }
+  body.in-room .origin-node { animation: none; }
 }
