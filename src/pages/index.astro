@@ -7,233 +7,145 @@ import WorkRoom from '@/components/rooms/WorkRoom.astro';
 import WritingRoom from '@/components/rooms/WritingRoom.astro';
 import AboutRoom from '@/components/rooms/AboutRoom.astro';
 import ContactRoom from '@/components/rooms/ContactRoom.astro';
-import { getSection, HUB } from '@/lib/nav';
-import '@/styles/home.css';
-
-const S = (id: string) => getSection(id)!;
-const work = S('work'), writing = S('writing'), about = S('about'), contact = S('contact');
+import { HUB } from '@/lib/nav';
 ---
 
 <BaseLayout title="wayleem" immersive>
   <HiddenNav />
 
   <div class="stage">
-    <section class="view" data-view="hub"><Hub /></section>
-    <section class="view" data-view="work" data-dir={work.dir} data-color={work.color} data-label={work.label}><WorkRoom /></section>
-    <section class="view" data-view="writing" data-dir={writing.dir} data-color={writing.color} data-label={writing.label}><WritingRoom /></section>
-    <section class="view" data-view="about" data-dir={about.dir} data-color={about.color} data-label={about.label}><AboutRoom /></section>
-    <section class="view" data-view="contact" data-dir={contact.dir} data-color={contact.color} data-label={contact.label}><ContactRoom /></section>
+    <div class="world">
+      <Hub />
+      <section class="area" data-area="work"><WorkRoom /></section>
+      <section class="area" data-area="writing"><WritingRoom /></section>
+      <section class="area" data-area="about"><AboutRoom /></section>
+      <section class="area" data-area="contact"><ContactRoom /></section>
+    </div>
   </div>
 
   <header class="overlay overlay--top">
     <a class="brand mono" href="#" data-goto="hub">{HUB.label}<span>.com</span></a>
     <ThemeToggle />
   </header>
-
-  <!-- The section's own circle travels here and becomes the back button. -->
-  <button class="fly-node" type="button" data-back hidden aria-label="Back to map" title="back to map">
-    <span class="fly-node__dot"></span>
-    <span class="fly-node__label mono"></span>
-  </button>
   <p class="hint mono" aria-hidden="true">click a node</p>
 
   <script>
-  // Room controller with a single traveling node (FLIP):
-  // - the hub FADES, the room SLIDES in from the node's side (data-dir)
-  // - the clicked section's circle physically travels (fly-node) from its spot
-  //   on the hub to the edge it belongs to, and becomes the back button
-  // - the hub's own copy of that node is hidden so there's never a duplicate
-  const DIRS = { right: [1, 0], down: [0, 1], left: [-1, 0], up: [0, -1] };
-  const DURATION = 560;
+  // One continuous plane, locked camera. Focusing a section translates the
+  // whole .world so that section's node lands at its edge; the hub cluster
+  // fades except that node (which stays put — it's the same element moving with
+  // the plane). No FLIP, no duplicate. Areas scroll natively (camera is locked).
+  const R = 128; // node distance from hub center (must match Hub.astro)
+  const DURATION = 640;
+  const SECTIONS = ['work', 'writing', 'about', 'contact'];
+  const nodeWorld = { work: [R, 0], about: [-R, 0], writing: [0, -R], contact: [0, R] };
+
   let current = 'hub';
   let animating = false;
+  let cams = { hub: [0, 0] };
 
-  const stageEl = () => document.querySelector('.stage');
-  const viewEl = (id) => document.querySelector(`.stage .view[data-view="${id}"]`);
-  const hubNodeEl = (id) => document.querySelector(`.hub [data-goto="${id}"]`);
-  const flyEl = () => document.querySelector('.fly-node');
-  const dirOf = (id) => {
-    const el = viewEl(id);
-    const d = el && el.dataset.dir;
-    return d ? DIRS[d] : [0, 0];
-  };
+  const q = (s) => document.querySelector(s);
+  const worldEl = () => q('.world');
+  const areaEl = (id) => q(`.area[data-area="${id}"]`);
 
-  function slide(el, x, y, animated) {
-    el.style.transition = animated ? '' : 'none';
-    el.style.transform = `translate(${x * 100}%, ${y * 100}%)`;
-  }
-
-  // FLIP the section circle between its hub position and its edge/back slot.
-  function travel(sectionId, entering, animated) {
-    const fly = flyEl();
-    const hubNode = hubNodeEl(sectionId);
-    const v = viewEl(sectionId);
-    if (!fly || !hubNode || !v) return;
-
-    fly.querySelector('.fly-node__dot').style.background = v.dataset.color || '';
-    fly.querySelector('.fly-node__label').textContent = v.dataset.label || '';
-    fly.dataset.dir = v.dataset.dir || '';
-    fly.hidden = false;
-    fly.style.transition = 'none';
-    fly.style.transform = 'none'; // rest at the edge slot (positioned by CSS)
-    void fly.offsetWidth;
-
-    // Source = the hub node's on-screen circle; target = the edge slot.
-    const src = hubNode.querySelector('.hnode__dot').getBoundingClientRect();
-    const tgt = fly.getBoundingClientRect();
-    const dx = src.left + src.width / 2 - (tgt.left + tgt.width / 2);
-    const dy = src.top + src.height / 2 - (tgt.top + tgt.height / 2);
-    const scale = tgt.width ? src.width / tgt.width : 1;
-    const atSrc = `translate(${dx}px, ${dy}px) scale(${scale})`;
-
-    hubNode.classList.add('is-hidden'); // no duplicate circle on the hub
-
-    if (entering) {
-      fly.style.transform = atSrc; // start exactly where the hub node is
-      void fly.offsetWidth;
-      if (animated) {
-        fly.style.transition = '';
-        requestAnimationFrame(() => (fly.style.transform = 'none')); // glide to edge
-      } else {
-        fly.style.transform = 'none';
-      }
-    } else {
-      fly.style.transform = 'none';
-      void fly.offsetWidth;
-      const done = () => {
-        fly.hidden = true;
-        fly.style.transform = 'none';
-        hubNode.classList.remove('is-hidden');
-      };
-      if (animated) {
-        fly.style.transition = '';
-        requestAnimationFrame(() => (fly.style.transform = atSrc)); // glide back to hub
-        setTimeout(done, DURATION);
-      } else {
-        done();
-      }
-    }
-  }
-
-  function chrome(id) {
-    document.body.classList.toggle('in-room', id !== 'hub');
-    const s = stageEl();
-    if (s) s.dataset.active = id;
-  }
-
-  function show(id, animated) {
-    const to = viewEl(id);
-    if (!to) return;
-    const from = viewEl(current);
-    if (id === current) {
-      chrome(id);
-      return;
-    }
-    const enteringRoom = id !== 'hub';
-    const sectionId = enteringRoom ? id : current; // whose node travels
-    const [vx, vy] = dirOf(sectionId);
-
-    to.classList.add('is-visible');
-    if (enteringRoom) {
-      slide(to, vx, vy, false); // room parked on its side
-      to.style.opacity = '1';
-    } else {
-      slide(to, 0, 0, false); // hub centered
-      to.style.opacity = animated ? '0' : '1';
-    }
-    void to.offsetWidth;
-
-    travel(sectionId, enteringRoom, animated);
-
-    const run = () => {
-      if (enteringRoom) {
-        slide(to, 0, 0, animated); // room slides in
-        if (from) {
-          from.style.transition = animated ? '' : 'none';
-          from.style.opacity = '0'; // hub fades out
-        }
-      } else {
-        to.style.transition = animated ? '' : 'none';
-        to.style.opacity = '1'; // hub fades in
-        if (from) slide(from, vx, vy, animated); // room slides out
-      }
+  function layout() {
+    const W = window.innerWidth, H = window.innerHeight;
+    // Where each section's node sits (screen px) once focused.
+    const anchor = {
+      work: [0.14 * W, 0.5 * H],
+      about: [0.86 * W, 0.5 * H],
+      writing: [0.5 * W, 0.84 * H],
+      contact: [0.5 * W, 0.16 * H],
     };
-
-    const finish = () => {
-      if (from && from !== to) from.classList.remove('is-visible');
-      current = id;
-      animating = false;
-      chrome(id);
+    // Screen region the area content should fill once focused: [x, y, w, h].
+    const region = {
+      work: [0.21 * W, 0, 0.75 * W, H],
+      about: [0.04 * W, 0, 0.75 * W, H],
+      writing: [0.08 * W, 0.02 * H, 0.84 * W, 0.7 * H],
+      contact: [0.08 * W, 0.28 * H, 0.84 * W, 0.7 * H],
     };
+    cams = { hub: [0.5 * W, 0.5 * H] };
+    for (const id of SECTIONS) {
+      cams[id] = [anchor[id][0] - nodeWorld[id][0], anchor[id][1] - nodeWorld[id][1]];
+      const a = areaEl(id);
+      if (!a) continue;
+      const [sx, sy, sw, sh] = region[id];
+      a.style.left = sx - cams[id][0] + 'px';
+      a.style.top = sy - cams[id][1] + 'px';
+      a.style.width = sw + 'px';
+      a.style.height = sh + 'px';
+    }
+    applyCam(current, false);
+  }
 
+  function applyCam(id, animated) {
+    const w = worldEl();
+    if (!w) return;
+    const c = cams[id] || cams.hub;
+    w.style.transition = animated ? '' : 'none';
+    w.style.transform = `translate(${c[0]}px, ${c[1]}px)`;
+  }
+
+  function setVisuals(id) {
+    const inArea = id !== 'hub';
+    document.querySelectorAll('.hub .hnode').forEach((n) => {
+      const target = inArea && n.dataset.goto === id;
+      const dim = inArea && !target;
+      n.style.opacity = dim ? '0' : '1';
+      n.style.pointerEvents = dim ? 'none' : '';
+    });
+    const edges = q('.hub__edges');
+    if (edges) edges.style.opacity = inArea ? '0' : '1';
+    document.body.classList.toggle('in-area', inArea);
+    const s = q('.stage');
+    if (s) s.dataset.focus = id;
+  }
+
+  function focus(id, animated) {
+    if (id === current && animated) return;
+    applyCam(id, animated);
+    setVisuals(id);
+    current = id;
     if (animated) {
       animating = true;
-      requestAnimationFrame(run);
-      setTimeout(finish, DURATION);
-    } else {
-      run();
-      finish();
+      setTimeout(() => (animating = false), DURATION);
     }
   }
 
   function navigate(id) {
     if (animating) return;
-    history.pushState({ view: id }, '', id === 'hub' ? location.pathname : '#' + id);
-    show(id, true);
+    history.pushState({ v: id }, '', id === 'hub' ? location.pathname : '#' + id);
+    focus(id, true);
   }
-
-  function syncFromHash(animated) {
+  function syncHash(animated) {
     const id = (location.hash || '').slice(1);
-    show(id && viewEl(id) ? id : 'hub', animated);
+    focus(SECTIONS.includes(id) ? id : 'hub', animated);
   }
 
   document.addEventListener('click', (e) => {
     const t = e.target;
     if (!(t instanceof Element)) return;
-    const goto = t.closest('[data-goto]');
-    if (goto) {
+    const g = t.closest('[data-goto]');
+    if (g) {
       e.preventDefault();
-      navigate(goto.getAttribute('data-goto'));
+      const id = g.getAttribute('data-goto');
+      const inHub = !!g.closest('.hub');
+      navigate(inHub && current === id ? 'hub' : id); // node toggles hub<->area
       return;
-    }
-    if (t.closest('[data-back]')) {
-      e.preventDefault();
-      navigate('hub');
     }
   });
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && current !== 'hub') navigate('hub');
   });
-  window.addEventListener('popstate', () => syncFromHash(true));
+  window.addEventListener('popstate', () => syncHash(true));
+  window.addEventListener('resize', () => { if (q('.stage')) layout(); });
 
-  function init(stage) {
-    current = 'hub';
-    stage.querySelectorAll('.view').forEach((v) => {
-      const id = v.dataset.view;
-      if (id === 'hub') {
-        v.classList.add('is-visible');
-        slide(v, 0, 0, false);
-        v.style.opacity = '1';
-      } else {
-        const [x, y] = dirOf(id);
-        v.classList.remove('is-visible');
-        slide(v, x, y, false);
-        v.style.opacity = '1';
-      }
-    });
-    const fly = flyEl();
-    if (fly) {
-      fly.hidden = true;
-      fly.style.transform = 'none';
-    }
-    document.querySelectorAll('.hub .hnode.is-hidden').forEach((n) => n.classList.remove('is-hidden'));
-    syncFromHash(false);
-  }
   function boot() {
-    const stage = stageEl();
+    const stage = q('.stage');
     if (!stage || stage.dataset.booted) return;
     stage.dataset.booted = '1';
-    init(stage);
+    current = 'hub';
+    layout();
+    syncHash(false);
   }
   document.addEventListener('astro:page-load', boot);
   boot();

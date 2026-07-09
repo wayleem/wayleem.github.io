@@ -1,27 +1,37 @@
-/* ── Stage: fixed viewport holding hub + rooms, one active at a time ────── */
+/* ── Locked-camera canvas: one .world plane translated between areas ────── */
 body.is-immersive { overflow: hidden; height: 100dvh; overscroll-behavior: none; }
 
-.stage { position: fixed; inset: 0; overflow: hidden; background: var(--bg); }
-
-.view {
-  position: absolute;
+.stage {
+  position: fixed;
   inset: 0;
-  visibility: hidden;
-  will-change: transform, opacity;
-  transition: transform 0.55s cubic-bezier(0.6, 0.02, 0.2, 1), opacity 0.4s ease;
-  background: var(--bg);
-}
-.view.is-visible { visibility: visible; }
-
-/* The hub gets the dotted "map" backdrop; rooms are clean. */
-.view[data-view='hub'] {
+  overflow: hidden;
+  background-color: var(--bg);
   background-image: radial-gradient(var(--bg-grid) 1.6px, transparent 1.6px);
   background-size: 24px 24px;
 }
 
-/* ── Hub: radial map (SVG edges + solid circles) ───────────────────────── */
-.hub { position: absolute; top: 50%; left: 50%; width: 360px; height: 360px; transform: translate(-50%, -50%); }
-.hub__edges { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.world {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  transform: translate(50vw, 50vh); /* hub centered before JS runs (no flash) */
+  will-change: transform;
+  transition: transform 0.62s cubic-bezier(0.5, 0.02, 0.2, 1);
+}
+
+/* ── Hub cluster at world origin (0,0) ─────────────────────────────────── */
+.hub {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 360px;
+  height: 360px;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+}
+.hub__edges { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; transition: opacity 0.3s ease; }
 .hub__edges line { stroke: var(--edge); stroke-width: 1.5; }
 
 .hnode {
@@ -33,6 +43,7 @@ body.is-immersive { overflow: hidden; height: 100dvh; overscroll-behavior: none;
   transform: translate(-50%, -50%) translate(var(--dx, 0px), var(--dy, 0px));
   text-decoration: none;
   cursor: pointer;
+  transition: opacity 0.3s ease;
 }
 .hnode__dot {
   display: block;
@@ -57,29 +68,26 @@ body.is-immersive { overflow: hidden; height: 100dvh; overscroll-behavior: none;
 .hnode:hover .hnode__label { color: var(--text); }
 .hnode--hub { width: 78px; height: 78px; cursor: default; }
 .hnode--hub .hnode__label { color: var(--text); font-weight: 700; font-size: 0.9rem; }
-/* Active section's hub node is hidden while its circle travels via .fly-node. */
-.hnode.is-hidden { visibility: hidden; }
 
-/* ── Rooms ─────────────────────────────────────────────────────────────── */
-.room { height: 100%; }
-.room--scroll { overflow-y: auto; -webkit-overflow-scrolling: touch; }
-.room--center { display: grid; place-items: center; overflow-y: auto; }
-.room__inner { max-width: 44rem; margin: 0 auto; padding: 5.5rem 1.5rem 4rem; width: 100%; }
-.room__title { font-size: clamp(1.6rem, 4vw, 2.2rem); margin: 0 0 1.75rem; letter-spacing: -0.02em; }
+/* ── Areas: positioned + sized in world by JS; scroll internally ────────── */
+.area {
+  position: absolute;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  z-index: 2;
+}
+.room__inner { max-width: 42rem; margin: 0 auto; padding: 3rem 1.5rem 3.5rem; }
+.area[data-area='about'], .area[data-area='contact'] { display: grid; align-items: center; }
+
+.room__title { font-size: clamp(1.5rem, 4vw, 2rem); margin: 0 0 1.5rem; letter-spacing: -0.02em; }
 
 /* Timeline (work) */
 .timeline { list-style: none; margin: 0; padding: 0; position: relative; }
 .timeline::before { content: ''; position: absolute; left: 3.4rem; top: 0.4rem; bottom: 0.4rem; width: 2px; background: var(--border); }
-.tl { position: relative; }
 .tl__link {
-  display: grid;
-  grid-template-columns: 2.6rem 1.4rem 1fr;
-  gap: 0.5rem;
-  align-items: start;
-  padding: 0.9rem 0.6rem;
-  border-radius: 10px;
-  color: var(--text);
-  transition: background 0.15s ease;
+  display: grid; grid-template-columns: 2.6rem 1.4rem 1fr; gap: 0.5rem; align-items: start;
+  padding: 0.9rem 0.6rem; border-radius: 10px; color: var(--text); transition: background 0.15s ease;
 }
 .tl__link:hover { background: var(--surface-2); text-decoration: none; }
 .tl__year { font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-dim); padding-top: 0.15rem; }
@@ -89,11 +97,7 @@ body.is-immersive { overflow: hidden; height: 100dvh; overscroll-behavior: none;
 .tl__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.4rem; }
 .tl__name { font-weight: 600; }
 .tl__org { color: var(--text-dim); font-size: 0.9rem; }
-.tl__kind {
-  font-family: var(--font-mono); font-size: 0.62rem; text-transform: uppercase;
-  letter-spacing: 0.05em; color: var(--text-dim);
-  border: 1px solid var(--border); border-radius: 4px; padding: 0.05rem 0.35rem;
-}
+.tl__kind { font-family: var(--font-mono); font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); border: 1px solid var(--border); border-radius: 4px; padding: 0.05rem 0.35rem; }
 .tl__period { font-family: var(--font-mono); font-size: 0.74rem; color: var(--text-dim); }
 .tl__summary { color: var(--text-dim); font-size: 0.92rem; margin-top: 0.1rem; }
 
@@ -107,18 +111,13 @@ body.is-immersive { overflow: hidden; height: 100dvh; overscroll-behavior: none;
 
 /* About */
 .about { display: flex; gap: 1.5rem; align-items: flex-start; flex-wrap: wrap; }
-.about__portrait {
-  flex: none; width: 84px; height: 84px; border-radius: 50%;
-  display: grid; place-items: center; font-size: 2.2rem;
-  background: var(--surface-2); border: 1px solid var(--border);
-}
-.about__text { flex: 1; min-width: 16rem; }
+.about__portrait { flex: none; width: 84px; height: 84px; border-radius: 50%; display: grid; place-items: center; font-size: 2.2rem; background: var(--surface-2); border: 1px solid var(--border); }
+.about__text { flex: 1; min-width: 15rem; }
 .about__text p { color: var(--text); line-height: 1.7; }
 .about__intro { font-size: 1.15rem; font-weight: 600; margin-top: 0; }
 .about__now { font-family: var(--font-mono); font-size: 0.82rem; color: var(--text-dim); }
 
 /* Contact */
-.contact { text-align: left; }
 .contact__lede { color: var(--text-dim); margin: 0 0 1rem; }
 .contact__links { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.6rem; }
 .contact__links a { font-size: 1.3rem; font-weight: 600; color: var(--text); }
@@ -126,81 +125,22 @@ body.is-immersive { overflow: hidden; height: 100dvh; overscroll-behavior: none;
 
 /* ── Overlay chrome ────────────────────────────────────────────────────── */
 .overlay { position: fixed; z-index: 10; }
-.overlay--top {
-  top: 0; left: 0; right: 0;
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 1rem 1.25rem; pointer-events: none;
-}
+.overlay--top { top: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem; pointer-events: none; }
 .overlay--top > * { pointer-events: auto; }
 .brand { font-weight: 700; font-size: 1rem; color: var(--text); letter-spacing: -0.02em; }
 .brand:hover { text-decoration: none; }
 .brand span { color: var(--text-dim); }
-body.in-room .brand { display: none; }
-
-/* The section's own circle — travels between the hub and its edge slot (FLIP),
-   then acts as the back button. Sized to match a hub section node (56px);
-   edge slots are margin-centered so `transform` stays free for the FLIP. */
-.fly-node {
-  position: fixed;
-  z-index: 20;
-  width: 56px;
-  height: 56px;
-  display: block;
-  background: none;
-  border: 0;
-  padding: 0;
-  cursor: pointer;
-  transform-origin: center;
-  will-change: transform;
-  transition: transform 0.56s cubic-bezier(0.6, 0.02, 0.2, 1);
-}
-.fly-node[hidden] { display: none; }
-.fly-node[data-dir='right'] { left: 2rem; top: 50%; margin-top: -28px; }
-.fly-node[data-dir='left'] { right: 2rem; top: 50%; margin-top: -28px; }
-.fly-node[data-dir='up'] { left: 50%; bottom: 1.75rem; margin-left: -28px; }
-.fly-node[data-dir='down'] { left: 50%; top: 1.4rem; margin-left: -28px; }
-.fly-node__dot {
-  display: block;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  box-shadow: 0 5px 16px rgba(20, 20, 15, 0.2);
-  transition: transform 0.16s cubic-bezier(0.2, 0.8, 0.3, 1.1);
-}
-.fly-node:hover .fly-node__dot { transform: scale(1.1); }
-.fly-node:active .fly-node__dot { transform: scale(1.02); }
-.fly-node__label {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%);
-  white-space: nowrap;
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--text-dim);
-}
-
-.overlay-btn {
-  background: var(--surface); border: 1px solid var(--border);
-  color: var(--text-dim); border-radius: 8px; padding: 0.35rem 0.7rem;
-  font-size: 0.72rem; cursor: pointer;
-}
+.overlay-btn { background: var(--surface); border: 1px solid var(--border); color: var(--text-dim); border-radius: 8px; padding: 0.35rem 0.7rem; font-size: 0.72rem; cursor: pointer; }
 .overlay-btn:hover { border-color: var(--border-strong); color: var(--text); }
+.hint { position: fixed; z-index: 10; bottom: 1rem; left: 50%; transform: translateX(-50%); margin: 0; font-size: 0.72rem; color: var(--text-dim); pointer-events: none; }
+body.in-area .hint { opacity: 0; }
 
-.hint {
-  position: fixed; z-index: 10; bottom: 1rem; left: 50%; transform: translateX(-50%);
-  margin: 0; font-size: 0.72rem; color: var(--text-dim); pointer-events: none;
-}
-body.in-room .hint { display: none; }
-
-/* ── Responsive: scale the hub down on small screens ───────────────────── */
 @media (max-width: 560px) {
   .hub { transform: translate(-50%, -50%) scale(0.82); }
-  .room__inner { padding-top: 5rem; }
+  .room__inner { padding: 2.5rem 1.1rem 3rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .view { transition: none; }
-  .hnode__dot { transition: none; }
-  .fly-node { transition: none; }
+  .world { transition: none; }
+  .hnode, .hub__edges { transition: none; }
 }
