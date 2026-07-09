@@ -71,6 +71,9 @@ const work = S('work'), writing = S('writing'), about = S('about'), contact = S(
         const label = origin.querySelector('.origin-node__label');
         if (dot) dot.style.background = v.dataset.color || '';
         if (label) label.textContent = v.dataset.label || '';
+        // Land the node on the edge it spatially belongs to after the pan
+        // (pan right -> left edge, etc.); CSS reads data-dir to place it.
+        origin.dataset.dir = v.dataset.dir || '';
       }
     }
     const s = stageEl();
