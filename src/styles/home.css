@@ -6,8 +6,8 @@ body.is-immersive { overflow: hidden; height: 100dvh; overscroll-behavior: none;
   inset: 0;
   overflow: hidden;
   background-color: var(--bg);
-  background-image: radial-gradient(var(--bg-grid) 1.6px, transparent 1.6px);
-  background-size: 24px 24px;
+  background-image: radial-gradient(var(--bg-grid) 1px, transparent 1px);
+  background-size: 30px 30px;
 }
 
 .world {
