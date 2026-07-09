@@ -1,5 +1,5 @@
 ---
-import { SECTIONS, HUB } from '@/lib/nav';
+import { SECTIONS } from '@/lib/nav';
 
 const R = 128; // node distance from center (matches SVG viewBox units = px)
 const deg = Math.PI / 180;
@@ -14,11 +14,6 @@ const nodes = SECTIONS.map((s) => ({
   <svg class="hub__edges" viewBox="-180 -180 360 360" aria-hidden="true">
     {nodes.map((n) => <line x1="0" y1="0" x2={n.dx} y2={n.dy} />)}
   </svg>
-
-  <div class="hnode hnode--hub">
-    <span class="hnode__dot" style={`background:${HUB.color}`}></span>
-    <span class="hnode__label">{HUB.label}</span>
-  </div>
 
   {nodes.map((n) => (
     <a
