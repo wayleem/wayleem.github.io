@@ -96,6 +96,13 @@ import '@/styles/home.css';
     });
     const edges = q('.hub__edges');
     if (edges) edges.style.opacity = inArea ? '0' : '1';
+    // Only the focused area is visible; the rest fade out so they don't bleed
+    // into the hub view from the edges.
+    document.querySelectorAll('.area').forEach((a) => {
+      const on = a.dataset.area === id;
+      a.style.opacity = on ? '1' : '0';
+      a.style.pointerEvents = on ? 'auto' : 'none';
+    });
     document.body.classList.toggle('in-area', inArea);
     const s = q('.stage');
     if (s) s.dataset.focus = id;

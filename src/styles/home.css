@@ -76,6 +76,9 @@ body.is-immersive { overflow: hidden; height: 100dvh; overscroll-behavior: none;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   z-index: 2;
+  opacity: 0; /* only the focused area shows (else neighbors bleed in at the hub) */
+  pointer-events: none;
+  transition: opacity 0.4s ease;
 }
 .room__inner { max-width: 42rem; margin: 0 auto; padding: 3rem 1.5rem 3.5rem; }
 .area[data-area='about'], .area[data-area='contact'] { display: grid; align-items: center; }
