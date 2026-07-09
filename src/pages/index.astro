@@ -30,52 +30,93 @@ const work = S('work'), writing = S('writing'), about = S('about'), contact = S(
     <ThemeToggle />
   </header>
 
-  <!-- The originating section's node, pinned in the corner — it IS the back button. -->
-  <button class="overlay origin-node" type="button" data-back hidden aria-label="Back to map" title="back to map">
-    <span class="origin-node__dot"></span>
-    <span class="origin-node__label mono"></span>
-    <span class="origin-node__hint mono" aria-hidden="true">← back</span>
+  <!-- The section's own circle travels here and becomes the back button. -->
+  <button class="fly-node" type="button" data-back hidden aria-label="Back to map" title="back to map">
+    <span class="fly-node__dot"></span>
+    <span class="fly-node__label mono"></span>
   </button>
   <p class="hint mono" aria-hidden="true">click a node</p>
 
   <script>
-  // Directional room controller: hash drives which view is active; each room
-  // pans in from its node's side (data-dir) and reverse-pans back to the hub.
+  // Room controller with a single traveling node (FLIP):
+  // - the hub FADES, the room SLIDES in from the node's side (data-dir)
+  // - the clicked section's circle physically travels (fly-node) from its spot
+  //   on the hub to the edge it belongs to, and becomes the back button
+  // - the hub's own copy of that node is hidden so there's never a duplicate
   const DIRS = { right: [1, 0], down: [0, 1], left: [-1, 0], up: [0, -1] };
+  const DURATION = 560;
   let current = 'hub';
   let animating = false;
 
   const stageEl = () => document.querySelector('.stage');
   const viewEl = (id) => document.querySelector(`.stage .view[data-view="${id}"]`);
+  const hubNodeEl = (id) => document.querySelector(`.hub [data-goto="${id}"]`);
+  const flyEl = () => document.querySelector('.fly-node');
   const dirOf = (id) => {
     const el = viewEl(id);
     const d = el && el.dataset.dir;
     return d ? DIRS[d] : [0, 0];
   };
 
-  function place(el, x, y, animated) {
+  function slide(el, x, y, animated) {
     el.style.transition = animated ? '' : 'none';
     el.style.transform = `translate(${x * 100}%, ${y * 100}%)`;
   }
 
-  function chrome(id) {
-    const inRoom = id !== 'hub';
-    document.body.classList.toggle('in-room', inRoom);
-    // Pin the originating section's node in the corner as the back control.
-    const origin = document.querySelector('.origin-node');
-    if (origin) {
-      origin.hidden = !inRoom;
-      const v = inRoom ? viewEl(id) : null;
-      if (v) {
-        const dot = origin.querySelector('.origin-node__dot');
-        const label = origin.querySelector('.origin-node__label');
-        if (dot) dot.style.background = v.dataset.color || '';
-        if (label) label.textContent = v.dataset.label || '';
-        // Land the node on the edge it spatially belongs to after the pan
-        // (pan right -> left edge, etc.); CSS reads data-dir to place it.
-        origin.dataset.dir = v.dataset.dir || '';
+  // FLIP the section circle between its hub position and its edge/back slot.
+  function travel(sectionId, entering, animated) {
+    const fly = flyEl();
+    const hubNode = hubNodeEl(sectionId);
+    const v = viewEl(sectionId);
+    if (!fly || !hubNode || !v) return;
+
+    fly.querySelector('.fly-node__dot').style.background = v.dataset.color || '';
+    fly.querySelector('.fly-node__label').textContent = v.dataset.label || '';
+    fly.dataset.dir = v.dataset.dir || '';
+    fly.hidden = false;
+    fly.style.transition = 'none';
+    fly.style.transform = 'none'; // rest at the edge slot (positioned by CSS)
+    void fly.offsetWidth;
+
+    // Source = the hub node's on-screen circle; target = the edge slot.
+    const src = hubNode.querySelector('.hnode__dot').getBoundingClientRect();
+    const tgt = fly.getBoundingClientRect();
+    const dx = src.left + src.width / 2 - (tgt.left + tgt.width / 2);
+    const dy = src.top + src.height / 2 - (tgt.top + tgt.height / 2);
+    const scale = tgt.width ? src.width / tgt.width : 1;
+    const atSrc = `translate(${dx}px, ${dy}px) scale(${scale})`;
+
+    hubNode.classList.add('is-hidden'); // no duplicate circle on the hub
+
+    if (entering) {
+      fly.style.transform = atSrc; // start exactly where the hub node is
+      void fly.offsetWidth;
+      if (animated) {
+        fly.style.transition = '';
+        requestAnimationFrame(() => (fly.style.transform = 'none')); // glide to edge
+      } else {
+        fly.style.transform = 'none';
+      }
+    } else {
+      fly.style.transform = 'none';
+      void fly.offsetWidth;
+      const done = () => {
+        fly.hidden = true;
+        fly.style.transform = 'none';
+        hubNode.classList.remove('is-hidden');
+      };
+      if (animated) {
+        fly.style.transition = '';
+        requestAnimationFrame(() => (fly.style.transform = atSrc)); // glide back to hub
+        setTimeout(done, DURATION);
+      } else {
+        done();
       }
     }
+  }
+
+  function chrome(id) {
+    document.body.classList.toggle('in-room', id !== 'hub');
     const s = stageEl();
     if (s) s.dataset.active = id;
   }
@@ -88,13 +129,35 @@ const work = S('work'), writing = S('writing'), about = S('about'), contact = S(
       chrome(id);
       return;
     }
-    // Direction vector of the room involved (hub<->room).
-    const [vx, vy] = id !== 'hub' ? dirOf(id) : dirOf(current);
+    const enteringRoom = id !== 'hub';
+    const sectionId = enteringRoom ? id : current; // whose node travels
+    const [vx, vy] = dirOf(sectionId);
 
     to.classList.add('is-visible');
-    if (id !== 'hub') place(to, vx, vy, false); // room starts off on its side
-    else place(to, -vx, -vy, false); // hub starts off opposite the leaving room
-    void to.offsetWidth; // reflow so the start position sticks
+    if (enteringRoom) {
+      slide(to, vx, vy, false); // room parked on its side
+      to.style.opacity = '1';
+    } else {
+      slide(to, 0, 0, false); // hub centered
+      to.style.opacity = animated ? '0' : '1';
+    }
+    void to.offsetWidth;
+
+    travel(sectionId, enteringRoom, animated);
+
+    const run = () => {
+      if (enteringRoom) {
+        slide(to, 0, 0, animated); // room slides in
+        if (from) {
+          from.style.transition = animated ? '' : 'none';
+          from.style.opacity = '0'; // hub fades out
+        }
+      } else {
+        to.style.transition = animated ? '' : 'none';
+        to.style.opacity = '1'; // hub fades in
+        if (from) slide(from, vx, vy, animated); // room slides out
+      }
+    };
 
     const finish = () => {
       if (from && from !== to) from.classList.remove('is-visible');
@@ -103,22 +166,14 @@ const work = S('work'), writing = S('writing'), about = S('about'), contact = S(
       chrome(id);
     };
 
-    const outTo = () =>
-      id !== 'hub' ? place(from, -vx, -vy, animated) : place(from, vx, vy, animated);
-
-    if (!animated) {
-      place(to, 0, 0, false);
-      if (from && from !== to) outTo();
+    if (animated) {
+      animating = true;
+      requestAnimationFrame(run);
+      setTimeout(finish, DURATION);
+    } else {
+      run();
       finish();
-      return;
     }
-
-    animating = true;
-    requestAnimationFrame(() => {
-      place(to, 0, 0, true);
-      if (from && from !== to) outTo();
-    });
-    setTimeout(finish, 580);
   }
 
   function navigate(id) {
@@ -157,13 +212,21 @@ const work = S('work'), writing = S('writing'), about = S('about'), contact = S(
       const id = v.dataset.view;
       if (id === 'hub') {
         v.classList.add('is-visible');
-        place(v, 0, 0, false);
+        slide(v, 0, 0, false);
+        v.style.opacity = '1';
       } else {
         const [x, y] = dirOf(id);
         v.classList.remove('is-visible');
-        place(v, x, y, false);
+        slide(v, x, y, false);
+        v.style.opacity = '1';
       }
     });
+    const fly = flyEl();
+    if (fly) {
+      fly.hidden = true;
+      fly.style.transform = 'none';
+    }
+    document.querySelectorAll('.hub .hnode.is-hidden').forEach((n) => n.classList.remove('is-hidden'));
     syncFromHash(false);
   }
   function boot() {

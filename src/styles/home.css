@@ -7,8 +7,8 @@ body.is-immersive { overflow: hidden; height: 100dvh; overscroll-behavior: none;
   position: absolute;
   inset: 0;
   visibility: hidden;
-  will-change: transform;
-  transition: transform 0.55s cubic-bezier(0.6, 0.02, 0.2, 1);
+  will-change: transform, opacity;
+  transition: transform 0.55s cubic-bezier(0.6, 0.02, 0.2, 1), opacity 0.4s ease;
   background: var(--bg);
 }
 .view.is-visible { visibility: visible; }
@@ -57,6 +57,8 @@ body.is-immersive { overflow: hidden; height: 100dvh; overscroll-behavior: none;
 .hnode:hover .hnode__label { color: var(--text); }
 .hnode--hub { width: 78px; height: 78px; cursor: default; }
 .hnode--hub .hnode__label { color: var(--text); font-weight: 700; font-size: 0.9rem; }
+/* Active section's hub node is hidden while its circle travels via .fly-node. */
+.hnode.is-hidden { visibility: hidden; }
 
 /* ── Rooms ─────────────────────────────────────────────────────────────── */
 .room { height: 100%; }
@@ -135,36 +137,47 @@ body.is-immersive { overflow: hidden; height: 100dvh; overscroll-behavior: none;
 .brand span { color: var(--text-dim); }
 body.in-room .brand { display: none; }
 
-/* The originating section node = the back button. It sits on the edge it
-   spatially lands on after the pan (data-dir set by the controller):
-   work(right)->left edge, about(left)->right edge, contact(down)->top,
-   writing(up)->bottom. */
-.origin-node {
-  display: none; flex-direction: column; align-items: center; gap: 0.3rem;
-  background: none; border: 0; padding: 0; cursor: pointer;
+/* The section's own circle — travels between the hub and its edge slot (FLIP),
+   then acts as the back button. Sized to match a hub section node (56px);
+   edge slots are margin-centered so `transform` stays free for the FLIP. */
+.fly-node {
+  position: fixed;
+  z-index: 20;
+  width: 56px;
+  height: 56px;
+  display: block;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  transform-origin: center;
+  will-change: transform;
+  transition: transform 0.56s cubic-bezier(0.6, 0.02, 0.2, 1);
 }
-.origin-node[data-dir='right'] { left: 2rem; top: 50%; transform: translateY(-50%); }
-.origin-node[data-dir='left'] { right: 2rem; top: 50%; transform: translateY(-50%); }
-.origin-node[data-dir='up'] { left: 50%; bottom: 1.75rem; transform: translateX(-50%); }
-.origin-node[data-dir='down'] { left: 50%; top: 1.4rem; transform: translateX(-50%); }
-body.in-room .origin-node { display: inline-flex; }
-.origin-node__dot {
-  width: 46px; height: 46px; border-radius: 50%;
+.fly-node[hidden] { display: none; }
+.fly-node[data-dir='right'] { left: 2rem; top: 50%; margin-top: -28px; }
+.fly-node[data-dir='left'] { right: 2rem; top: 50%; margin-top: -28px; }
+.fly-node[data-dir='up'] { left: 50%; bottom: 1.75rem; margin-left: -28px; }
+.fly-node[data-dir='down'] { left: 50%; top: 1.4rem; margin-left: -28px; }
+.fly-node__dot {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
   box-shadow: 0 5px 16px rgba(20, 20, 15, 0.2);
   transition: transform 0.16s cubic-bezier(0.2, 0.8, 0.3, 1.1);
 }
-body.in-room .origin-node__dot { animation: origin-pop 0.34s cubic-bezier(0.2, 0.85, 0.3, 1.25) both; }
-.origin-node:hover .origin-node__dot { transform: scale(1.1); }
-.origin-node:active .origin-node__dot { transform: scale(1.02); }
-.origin-node__label { font-size: 0.7rem; font-weight: 600; color: var(--text-dim); }
-.origin-node__hint {
-  font-size: 0.58rem; color: var(--text-dim);
-  opacity: 0; margin-top: -0.15rem; transition: opacity 0.15s ease;
-}
-.origin-node:hover .origin-node__hint { opacity: 1; }
-@keyframes origin-pop {
-  from { transform: scale(0.3); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+.fly-node:hover .fly-node__dot { transform: scale(1.1); }
+.fly-node:active .fly-node__dot { transform: scale(1.02); }
+.fly-node__label {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-dim);
 }
 
 .overlay-btn {
@@ -189,5 +202,5 @@ body.in-room .hint { display: none; }
 @media (prefers-reduced-motion: reduce) {
   .view { transition: none; }
   .hnode__dot { transition: none; }
-  body.in-room .origin-node__dot { animation: none; }
+  .fly-node { transition: none; }
 }
