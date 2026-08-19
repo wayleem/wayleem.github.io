@@ -1,4 +1,6 @@
-# Old canvas-era routes -> the publication structure.
+# Old canvas-era routes -> the publication structure. First match wins, so the
+# deleted post is caught before the generic /writing/:slug rule.
+/writing/hello-canvas /blog                  301
 /work                 /products              301
 /work/:slug           /products/:slug        301
 /writing              /blog                  301
