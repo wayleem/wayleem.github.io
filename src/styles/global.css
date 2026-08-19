@@ -353,6 +353,74 @@ body.is-wide .wrap {
   text-underline-offset: 3px;
 }
 
+/* ── Horizontal shelf ────────────────────────────────────────────────────── */
+.strip__controls {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+.strip__arrow {
+  width: 1.6rem;
+  height: 1.6rem;
+  display: none; /* revealed only when there is actually overflow */
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.strip.is-scrollable .strip__arrow {
+  display: inline-flex;
+}
+.strip__arrow:hover:not(:disabled) {
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+.strip__arrow:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.strip__scroller {
+  display: flex;
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  overscroll-behavior-x: contain; /* don't hand an over-scroll to browser back */
+  padding-bottom: 0.75rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+.strip__scroller::-webkit-scrollbar {
+  height: 6px;
+}
+.strip__scroller::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 999px;
+}
+.strip__scroller::-webkit-scrollbar-track {
+  background: transparent;
+}
+/* Sized so a card is part-visible at the right edge — that peek is the whole
+   scroll affordance on touch, where the arrows aren't the point. */
+.strip__scroller > .card {
+  flex: 0 0 clamp(15rem, 26vw, 20rem);
+  scroll-snap-align: start;
+}
+@media (max-width: 38rem) {
+  .strip__scroller > .card {
+    flex-basis: 78vw;
+  }
+}
+
 /* ── Cards ───────────────────────────────────────────────────────────────── */
 .grid {
   display: grid;

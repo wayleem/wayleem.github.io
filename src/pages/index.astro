@@ -2,12 +2,14 @@
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import Hero from '@/components/Hero.astro';
 import Card from '@/components/Card.astro';
+import Strip from '@/components/Strip.astro';
 import { getCollection } from 'astro:content';
 import { SITE, coverFor, itemLabel } from '@/lib/site';
 
-// The home page is a shopfront, not an archive: covers, six at most, then out
-// to /blog. The full reverse-chron list lives there, where a list belongs.
-const FEATURED = 6;
+// The home page is a shopfront, not an archive: covers on a shelf, then out to
+// /blog. The full reverse-chron list lives there, where a list belongs. The
+// shelf scrolls, so it can hold more than a grid row without growing the page.
+const FEATURED = 8;
 
 const posts = (await getCollection('posts'))
   .filter((e) => !e.data.draft)
@@ -22,11 +24,7 @@ const products = (await getCollection('products'))
 <BaseLayout title={SITE.name} rawTitle description={SITE.description} wide>
   <Hero />
 
-  <div class="section-head">
-    <h2>Featured</h2>
-    <a href="/blog">All posts →</a>
-  </div>
-  <div class="grid">
+  <Strip title="Featured" label="Featured posts" allHref="/blog" allLabel="All posts →">
     {posts.map((e, i) => (
       <Card
         href={`/blog/${e.id}`}
@@ -38,7 +36,7 @@ const products = (await getCollection('products'))
         eager={i < 3}
       />
     ))}
-  </div>
+  </Strip>
 
   <div class="section-head">
     <h2>Products</h2>

@@ -1,0 +1,89 @@
+---
+// A horizontally scrolling shelf. Native overflow scrolling with snap points —
+// the arrows are an affordance on top, not the mechanism, so trackpad, touch,
+// and keyboard all work whether or not the script runs.
+interface Props {
+  title: string;
+  allHref?: string;
+  allLabel?: string;
+  /** Accessible name for the scroll region. */
+  label: string;
+}
+
+const { title, allHref, allLabel = 'All →', label } = Astro.props;
+---
+
+<div class="strip" data-strip>
+  <div class="section-head">
+    <h2>{title}</h2>
+    <div class="strip__controls">
+      <button class="strip__arrow" type="button" data-dir="-1" aria-label={`Scroll ${label} left`} disabled>←</button>
+      <button class="strip__arrow" type="button" data-dir="1" aria-label={`Scroll ${label} right`}>→</button>
+      {allHref && <a href={allHref}>{allLabel}</a>}
+    </div>
+  </div>
+
+  <div class="strip__scroller" data-scroller tabindex="0" role="region" aria-label={label}>
+    <slot />
+  </div>
+</div>
+
+<script>
+  // Arrows page by roughly one card-and-gap; the disabled states come from the
+  // scroller's actual position so they stay honest at any card width.
+  function bindStrips() {
+    document.querySelectorAll<HTMLElement>('[data-strip]').forEach((strip) => {
+      if (strip.dataset.bound) return;
+      strip.dataset.bound = '1';
+
+      const scroller = strip.querySelector<HTMLElement>('[data-scroller]');
+      const arrows = [...strip.querySelectorAll<HTMLButtonElement>('[data-dir]')];
+      if (!scroller) return;
+
+      const sync = () => {
+        const max = scroller.scrollWidth - scroller.clientWidth;
+        const x = scroller.scrollLeft;
+        arrows.forEach((a) => {
+          const dir = Number(a.dataset.dir);
+          a.disabled = max <= 1 || (dir < 0 ? x <= 1 : x >= max - 1);
+        });
+        strip.classList.toggle('is-scrollable', max > 1);
+      };
+
+      // Page from a tracked target, not from scrollLeft: during a smooth scroll
+      // scrollLeft still reads the old position, so a quick second click would
+      // otherwise re-issue the same step and appear to do nothing.
+      let target: number | null = null;
+      let settle: ReturnType<typeof setTimeout> | undefined;
+
+      arrows.forEach((a) =>
+        a.addEventListener('click', () => {
+          const card = scroller.firstElementChild as HTMLElement | null;
+          const step = card ? card.offsetWidth + 20 : scroller.clientWidth * 0.8;
+          const max = scroller.scrollWidth - scroller.clientWidth;
+          const from = target ?? scroller.scrollLeft;
+          target = Math.max(0, Math.min(max, from + step * Number(a.dataset.dir)));
+          scroller.scrollTo({ left: target, behavior: 'smooth' });
+        }),
+      );
+
+      scroller.addEventListener(
+        'scroll',
+        () => {
+          sync();
+          // Drop the target once motion stops, so touch and trackpad scrolling
+          // hand control back to the real position.
+          clearTimeout(settle);
+          settle = setTimeout(() => (target = null), 160);
+        },
+        { passive: true },
+      );
+      window.addEventListener('resize', sync);
+      // Covers lazy-load, so scrollWidth can change after first paint.
+      scroller.querySelectorAll('img').forEach((img) => img.addEventListener('load', sync, { once: true }));
+      sync();
+    });
+  }
+  document.addEventListener('astro:page-load', bindStrips);
+  bindStrips();
+</script>
