@@ -114,8 +114,14 @@ body.is-wide .wrap {
   max-width: var(--page-wide);
 }
 
+/* Printed-masthead furniture: heavy rule above, wordmark, dateline, hairline
+   below. No descriptive sentence — the page states what it is by its shape. */
 .masthead {
-  padding: 2.5rem 0 0;
+  padding: 1.75rem 0 0;
+}
+.masthead .wrap {
+  border-top: 3px solid var(--rule);
+  padding-top: 1rem;
 }
 .masthead__row {
   display: flex;
@@ -124,21 +130,25 @@ body.is-wide .wrap {
   gap: 1.5rem;
   flex-wrap: wrap;
 }
-.masthead__name {
+.masthead__wordmark {
   font-family: var(--font-serif);
-  font-size: 1.5rem;
+  font-size: clamp(1.35rem, 3.2vw, 1.9rem);
   font-weight: 500;
-  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
   margin: 0;
-  line-height: 1.1;
+  line-height: 1.05;
 }
-.masthead__name a:hover {
+.masthead__wordmark a:hover {
   text-decoration: none;
 }
 .masthead__nav {
   display: flex;
-  gap: 1.25rem;
-  font-size: 0.9rem;
+  gap: 1.1rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 .masthead__nav a {
   color: var(--text-dim);
@@ -146,18 +156,28 @@ body.is-wide .wrap {
 .masthead__nav a[aria-current='page'] {
   color: var(--text);
   text-decoration: underline;
-  text-underline-offset: 3px;
+  text-underline-offset: 4px;
 }
-.masthead__blurb {
-  margin: 0.4rem 0 0;
-  color: var(--text-dim);
-  font-size: 0.95rem;
-  max-width: 34rem;
+.masthead__dateline {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 0.85rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-faint);
 }
-.masthead__rule {
-  border: 0;
-  border-top: 1px solid var(--rule);
-  margin: 1.1rem 0 0;
+.masthead__dateline a {
+  color: var(--text-faint);
+}
+.masthead__dateline a:hover {
+  color: var(--text);
 }
 
 .footer {
@@ -199,7 +219,7 @@ body.is-wide .wrap {
   display: grid;
   grid-template-columns: minmax(0, 1.85fr) minmax(15rem, 1fr);
   gap: 1.5rem;
-  margin-top: 2rem;
+  margin-top: 1.75rem;
 }
 
 .showcase {

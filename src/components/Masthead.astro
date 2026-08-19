@@ -1,23 +1,38 @@
 ---
-// Nameplate, not a hero. Name, one factual line, nav — then a rule and the page
-// starts. Keeping this under ~140px is what puts content above the fold.
+// Masthead, not an introduction. Wordmark, nav, and a dateline rule — the page
+// says what it is by its furniture rather than by explaining itself.
+//
+// The dateline reads from the newest post rather than build time. That means it
+// tells the truth: if it starts showing a stale month, the site IS stale, and a
+// build-time date would only hide that.
+import { getCollection } from 'astro:content';
 import { SITE, NAV } from '@/lib/site';
 
 const path = Astro.url.pathname;
 const isCurrent = (href: string) => path === href || path.startsWith(href + '/');
+
+const [newest] = (await getCollection('posts'))
+  .filter((e) => !e.data.draft)
+  .sort((a, b) => +b.data.date - +a.data.date);
+
+const dateline = newest
+  ? newest.data.date.toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' })
+  : null;
 ---
 
 <header class="masthead">
   <div class="wrap">
     <div class="masthead__row">
-      <p class="masthead__name"><a href="/">{SITE.name}</a></p>
+      <p class="masthead__wordmark"><a href="/">{SITE.name}</a></p>
       <nav class="masthead__nav" aria-label="Primary">
         {NAV.map((n) => (
           <a href={n.href} aria-current={isCurrent(n.href) ? 'page' : undefined}>{n.label}</a>
         ))}
       </nav>
     </div>
-    <p class="masthead__blurb">{SITE.blurb}</p>
-    <hr class="masthead__rule" />
+    <div class="masthead__dateline">
+      <span>{dateline}</span>
+      <a href="/rss.xml">Subscribe via RSS</a>
+    </div>
   </div>
 </header>

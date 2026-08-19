@@ -5,8 +5,7 @@ export const SITE = {
   name: 'William Huang',
   domain: 'wayleem.com',
   url: 'https://wayleem.com',
-  /** Nameplate line. Factual, no availability claim, no self-discount. */
-  blurb: 'Fullstack engineer. I build web products and trade my own money.',
+  /** Meta description and default share plate only — never rendered as page copy. */
   description:
     'William Huang — fullstack engineer. Notes on shipping software, and the products I build.',
 };
