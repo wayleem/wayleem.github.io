@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import { getCollection, render } from 'astro:content';
-import { fmtDateLong, itemLabel } from '@/lib/site';
+import { fmtDateLong, itemLabel, shareImageFor } from '@/lib/site';
 
 export async function getStaticPaths() {
   const posts = (await getCollection('posts')).filter((e) => !e.data.draft);
@@ -16,7 +16,7 @@ const { Content } = await render(entry);
   title={entry.data.title}
   description={entry.data.summary}
   publishedAt={entry.data.date}
-  ogImage={`/og/${entry.id}.png`}
+  ogImage={shareImageFor(entry.id)}
 >
   <article class="article">
     <div class="item__meta">

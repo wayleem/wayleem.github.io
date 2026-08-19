@@ -19,3 +19,7 @@ node_modules/
 # misc
 .DS_Store
 *.log
+
+# generated cover plates (rebuilt by scripts/generate-covers.mjs)
+public/og/
+public/covers/generated/

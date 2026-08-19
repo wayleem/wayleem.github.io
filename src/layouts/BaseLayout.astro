@@ -15,6 +15,8 @@ interface Props {
   ogImage?: string;
   /** Article metadata for OpenGraph + JSON-LD. */
   publishedAt?: Date;
+  /** Shopfront pages (home, products) run wider than the reading column. */
+  wide?: boolean;
 }
 
 const {
@@ -23,6 +25,7 @@ const {
   rawTitle = false,
   ogImage = '/og/default.png',
   publishedAt,
+  wide = false,
 } = Astro.props;
 
 const pageTitle = rawTitle ? title : `${title} — ${SITE.name}`;
@@ -96,7 +99,7 @@ const jsonLd = publishedAt
       })();
     </script>
   </head>
-  <body>
+  <body class={wide ? 'is-wide' : undefined}>
     <Masthead />
     <main class="wrap">
       <slot />

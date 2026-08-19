@@ -6,10 +6,12 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "postbuild": "node scripts/generate-og.mjs && node -e \"require('fs').writeFileSync('dist/.assetsignore','_worker.js\\n_routes.json\\n')\"",
+    "postbuild": "node -e \"require('fs').writeFileSync('dist/.assetsignore','_worker.js\\n_routes.json\\n')\"",
     "preview": "wrangler dev ./dist/_worker.js/index.js",
     "check": "astro check",
-    "astro": "astro"
+    "astro": "astro",
+    "prebuild": "node scripts/generate-covers.mjs",
+    "predev": "node scripts/generate-covers.mjs"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^12",

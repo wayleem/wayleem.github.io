@@ -54,6 +54,22 @@ export interface Role {
 // empty, so a half-written entry never reaches a reader.
 export const EXPERIENCE: Role[] = [];
 
+/**
+ * Card cover for an item. A real screenshot in frontmatter wins; otherwise the
+ * generated bar-field plate. Products are namespaced so a post and a product can
+ * share a slug without colliding.
+ */
+export function coverFor(id: string, cover?: string | null, isProduct = false): string {
+  return cover ?? `/covers/generated/${plateId(id, isProduct)}.png`;
+}
+
+/** Link preview for an item — always the generated title plate. */
+export function shareImageFor(id: string, isProduct = false): string {
+  return `/og/${plateId(id, isProduct)}.png`;
+}
+
+const plateId = (id: string, isProduct: boolean) => (isProduct ? `products-${id}` : id);
+
 export const KIND_LABEL: Record<string, string> = {
   essay: 'Essay',
   note: 'Note',

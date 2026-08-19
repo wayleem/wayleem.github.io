@@ -1,0 +1,143 @@
+---
+// Product-first hero: the strongest evidence in the first screenful, and it
+// doesn't go stale in a month where nothing gets published. Live products
+// rotate on the left; the right rail carries what's running and what's newest.
+import { getCollection } from 'astro:content';
+import { coverFor, fmtDate, itemLabel } from '@/lib/site';
+
+const products = (await getCollection('products'))
+  .filter((e) => !e.data.draft && e.data.kind === 'product' && e.data.status === 'live')
+  .sort((a, b) => a.data.order - b.data.order);
+
+const [latest] = (await getCollection('posts'))
+  .filter((e) => !e.data.draft)
+  .sort((a, b) => +b.data.date - +a.data.date);
+---
+
+<section class="hero">
+  <div class="showcase" data-showcase>
+    <div class="showcase__track">
+      {products.map((e, i) => (
+        <a
+          class={i === 0 ? 'slide is-on' : 'slide'}
+          href={`/products/${e.id}`}
+          data-slide={i}
+          aria-hidden={i > 0 ? 'true' : undefined}
+        >
+          <img
+            class="slide__shot"
+            src={coverFor(e.id, e.data.cover, true)}
+            alt=""
+            width="1200"
+            height="630"
+            loading={i === 0 ? 'eager' : 'lazy'}
+            decoding="async"
+          />
+          <div class="slide__body">
+            <h2 class="slide__name">{e.data.title}</h2>
+            <p class="slide__tagline">{e.data.tagline ?? e.data.summary}</p>
+            <div class="slide__stack">
+              {e.data.stack.slice(0, 4).map((s) => <span>{s}</span>)}
+            </div>
+          </div>
+        </a>
+      ))}
+    </div>
+
+    {products.length > 1 && (
+      <div class="showcase__dots" role="tablist" aria-label="Featured products">
+        {products.map((e, i) => (
+          <button
+            type="button"
+            data-dot={i}
+            role="tab"
+            aria-selected={i === 0 ? 'true' : 'false'}
+            aria-label={e.data.title}
+          ></button>
+        ))}
+      </div>
+    )}
+  </div>
+
+  <aside class="rail">
+    <div class="rail__block">
+      <p class="rail__label">Now</p>
+      <ul class="rail__list">
+        {products.map((e) => (
+          <li>
+            <a href={`/products/${e.id}`}>
+              <span class="rail__name">{e.data.title}</span>
+              <span class="rail__what">{e.data.tagline ?? e.data.summary}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    {latest && (
+      <div class="rail__block">
+        <p class="rail__label">Latest</p>
+        <a class="rail__latest" href={`/blog/${latest.id}`}>
+          <span class="rail__latest-title">{latest.data.title}</span>
+          <span class="meta">{fmtDate(latest.data.date)} · {itemLabel(latest.data.kind, latest.data.project)}</span>
+        </a>
+      </div>
+    )}
+  </aside>
+</section>
+
+<script>
+  // Manual dots plus a slow auto-advance, paused on hover/focus and disabled
+  // entirely under prefers-reduced-motion. Slides are stacked and cross-faded
+  // rather than translated, so no layout math to keep in sync.
+  function bindShowcase() {
+    const root = document.querySelector<HTMLElement>('[data-showcase]');
+    if (!root || root.dataset.bound) return;
+    root.dataset.bound = '1';
+
+    const slides = [...root.querySelectorAll<HTMLElement>('[data-slide]')];
+    const dots = [...root.querySelectorAll<HTMLElement>('[data-dot]')];
+    if (slides.length < 2) return;
+
+    let i = 0;
+    let timer: ReturnType<typeof setInterval> | undefined;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const show = (n: number) => {
+      i = (n + slides.length) % slides.length;
+      slides.forEach((s, k) => {
+        s.classList.toggle('is-on', k === i);
+        if (k === i) s.removeAttribute('aria-hidden');
+        else s.setAttribute('aria-hidden', 'true');
+      });
+      dots.forEach((d, k) => d.setAttribute('aria-selected', String(k === i)));
+    };
+
+    const start = () => {
+      if (reduced || timer) return;
+      timer = setInterval(() => show(i + 1), 7000);
+    };
+    const stop = () => {
+      if (timer) clearInterval(timer);
+      timer = undefined;
+    };
+
+    dots.forEach((d, k) =>
+      d.addEventListener('click', () => {
+        show(k);
+        stop();
+        start();
+      }),
+    );
+    root.addEventListener('mouseenter', stop);
+    root.addEventListener('mouseleave', start);
+    root.addEventListener('focusin', stop);
+    root.addEventListener('focusout', start);
+    document.addEventListener('astro:before-swap', stop, { once: true });
+
+    show(0);
+    start();
+  }
+  document.addEventListener('astro:page-load', bindShowcase);
+  bindShowcase();
+</script>

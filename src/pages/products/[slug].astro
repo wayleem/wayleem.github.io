@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import { getCollection, render } from 'astro:content';
-import { fmtDate, itemLabel, yearOf } from '@/lib/site';
+import { fmtDate, itemLabel, yearOf, shareImageFor } from '@/lib/site';
 
 export async function getStaticPaths() {
   const items = (await getCollection('products')).filter((e) => !e.data.draft);
@@ -22,7 +22,7 @@ const log = (await getCollection('posts'))
 <BaseLayout
   title={entry.data.title}
   description={entry.data.summary}
-  ogImage={`/og/products-${entry.id}.png`}
+  ogImage={shareImageFor(entry.id, true)}
 >
   <article class="article">
     <h1 class="article__title">{entry.data.title}</h1>

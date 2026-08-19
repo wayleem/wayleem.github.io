@@ -21,7 +21,8 @@
   --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', 'Fira Code', Menlo, monospace;
 
   --measure: 40rem; /* prose line length */
-  --page: 46rem; /* page column */
+  --page: 46rem; /* reading column: articles, lists */
+  --page-wide: 72rem; /* shopfront column: home, products grid */
 }
 
 :root[data-theme='dark'] {
@@ -106,6 +107,12 @@ a:hover {
   margin: 0 auto;
   padding: 0 1.25rem;
 }
+/* Home and the products index run wide; articles stay narrow for reading. One
+   class on <body> moves masthead, main and footer together so the nameplate
+   stays aligned with the grid beneath it. */
+body.is-wide .wrap {
+  max-width: var(--page-wide);
+}
 
 .masthead {
   padding: 2.5rem 0 0;
@@ -187,37 +194,245 @@ a:hover {
   color: var(--text);
 }
 
-/* ── NOW strip ───────────────────────────────────────────────────────────── */
-.now {
-  display: flex;
-  gap: 0.15rem 1rem;
-  align-items: baseline;
-  flex-wrap: wrap;
-  padding: 0.8rem 0;
+/* ── Hero ───────────────────────────────────────────────────────────────── */
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.85fr) minmax(15rem, 1fr);
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.showcase {
+  position: relative;
+}
+.showcase__track {
+  display: grid; /* slides stack in one cell and cross-fade */
+}
+.slide {
+  grid-area: 1 / 1;
+  display: block;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s ease;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--surface);
+}
+.slide.is-on,
+.showcase__track > .slide:only-child {
+  opacity: 1;
+  visibility: visible;
+}
+.slide:hover {
+  text-decoration: none;
+  border-color: var(--border-strong);
+}
+.slide__shot {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
   border-bottom: 1px solid var(--border);
 }
-.now__label {
+.slide__body {
+  padding: 1.1rem 1.25rem 1.35rem;
+}
+.slide__name {
+  font-family: var(--font-serif);
+  font-size: 1.65rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin: 0;
+  line-height: 1.15;
+}
+.slide:hover .slide__name {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.slide__tagline {
+  margin: 0.3rem 0 0;
+  color: var(--text-dim);
+}
+.slide__stack {
+  margin-top: 0.7rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.slide__stack span {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-faint);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.05rem 0.5rem;
+}
+
+.showcase__dots {
+  display: flex;
+  gap: 0.45rem;
+  justify-content: center;
+  margin-top: 0.85rem;
+}
+.showcase__dots button {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--border-strong);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.showcase__dots button[aria-selected='true'] {
+  background: var(--text);
+}
+
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.rail__block {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem 1.15rem;
+  background: var(--surface);
+}
+.rail__label {
   font-family: var(--font-mono);
   font-size: 0.7rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-faint);
+  margin: 0 0 0.6rem;
 }
-.now__items {
-  display: flex;
-  gap: 0.15rem 1.5rem;
-  flex-wrap: wrap;
+.rail__list {
+  list-style: none;
   margin: 0;
   padding: 0;
-  list-style: none;
+  display: grid;
+  gap: 0.8rem;
 }
-.now__name {
+.rail__list a {
+  display: block;
+}
+.rail__list a:hover {
+  text-decoration: none;
+}
+.rail__name {
+  display: block;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+.rail__list a:hover .rail__name {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.rail__what {
+  display: block;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+.rail__latest:hover {
+  text-decoration: none;
+}
+.rail__latest-title {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
   font-weight: 500;
-  margin-right: 0.3rem;
+  line-height: 1.25;
+  margin-bottom: 0.35rem;
 }
-.now__what {
+.rail__latest:hover .rail__latest-title {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ── Cards ───────────────────────────────────────────────────────────────── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+}
+@media (max-width: 62rem) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 38rem) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+.card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--surface);
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+.card:hover {
+  text-decoration: none;
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+}
+.card__cover {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-bottom: 1px solid var(--border);
+}
+.card__body {
+  padding: 0.9rem 1rem 1.1rem;
+}
+.card__meta {
+  display: flex;
+  gap: 0.6rem;
+  margin: 0 0 0.3rem;
+}
+.card__title {
+  font-family: var(--font-serif);
+  font-size: 1.2rem;
+  font-weight: 500;
+  line-height: 1.22;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+.card:hover .card__title {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.card__summary {
+  margin: 0.35rem 0 0;
   color: var(--text-dim);
   font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .slide {
+    transition: none;
+  }
+  .card:hover {
+    transform: none;
+  }
+}
+
+@media (max-width: 52rem) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ── Feed ────────────────────────────────────────────────────────────────── */
@@ -277,7 +492,7 @@ a:hover {
   align-items: baseline;
   justify-content: space-between;
   gap: 1rem;
-  margin: 3.5rem 0 0.25rem;
+  margin: 3rem 0 0.25rem;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid var(--rule);
 }
@@ -296,42 +511,7 @@ a:hover {
   color: var(--text-dim);
 }
 
-/* ── Product list ────────────────────────────────────────────────────────── */
-.products {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-.products > li {
-  border-bottom: 1px solid var(--border);
-}
-.product {
-  display: block;
-  padding: 1.3rem 0;
-}
-.product:hover {
-  text-decoration: none;
-}
-.product__head {
-  display: flex;
-  align-items: baseline;
-  gap: 0.6rem;
-  flex-wrap: wrap;
-}
-.product__name {
-  font-family: var(--font-serif);
-  font-size: 1.25rem;
-  font-weight: 500;
-}
-.product:hover .product__name {
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-.product__summary {
-  margin: 0.3rem 0 0;
-  color: var(--text-dim);
-  max-width: var(--measure);
-}
+/* Stack chips, on the product case study. */
 .product__stack {
   margin-top: 0.45rem;
   display: flex;

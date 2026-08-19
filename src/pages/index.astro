@@ -1,40 +1,58 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import NowStrip from '@/components/NowStrip.astro';
-import ProductList from '@/components/ProductList.astro';
-import FeedItem from '@/components/FeedItem.astro';
+import Hero from '@/components/Hero.astro';
+import Card from '@/components/Card.astro';
 import { getCollection } from 'astro:content';
-import { SITE } from '@/lib/site';
+import { SITE, coverFor, itemLabel } from '@/lib/site';
 
-const FEED_LIMIT = 15;
+// The home page is a shopfront, not an archive: covers, six at most, then out
+// to /blog. The full reverse-chron list lives there, where a list belongs.
+const FEATURED = 6;
 
 const posts = (await getCollection('posts'))
   .filter((e) => !e.data.draft)
   .sort((a, b) => +b.data.date - +a.data.date)
-  .slice(0, FEED_LIMIT);
+  .slice(0, FEATURED);
+
+const products = (await getCollection('products'))
+  .filter((e) => !e.data.draft)
+  .sort((a, b) => a.data.order - b.data.order || +b.data.date - +a.data.date);
 ---
 
-<BaseLayout title={SITE.name} rawTitle description={SITE.description}>
-  <NowStrip />
+<BaseLayout title={SITE.name} rawTitle description={SITE.description} wide>
+  <Hero />
 
-  <ul class="feed">
-    {posts.map((e) => (
-      <li>
-        <FeedItem
-          slug={e.id}
-          title={e.data.title}
-          summary={e.data.summary}
-          date={e.data.date}
-          kind={e.data.kind}
-          project={e.data.project}
-        />
-      </li>
+  <div class="section-head">
+    <h2>Featured</h2>
+    <a href="/blog">All posts →</a>
+  </div>
+  <div class="grid">
+    {posts.map((e, i) => (
+      <Card
+        href={`/blog/${e.id}`}
+        cover={coverFor(e.id, e.data.cover)}
+        title={e.data.title}
+        label={itemLabel(e.data.kind, e.data.project)}
+        summary={e.data.summary}
+        date={e.data.date}
+        eager={i < 3}
+      />
     ))}
-  </ul>
+  </div>
 
   <div class="section-head">
     <h2>Products</h2>
     <a href="/products">All →</a>
   </div>
-  <ProductList />
+  <div class="grid">
+    {products.map((e) => (
+      <Card
+        href={`/products/${e.id}`}
+        cover={coverFor(e.id, e.data.cover, true)}
+        title={e.data.title}
+        label={e.data.kind === 'tool' ? 'Tool' : 'Product'}
+        summary={e.data.tagline ?? e.data.summary}
+      />
+    ))}
+  </div>
 </BaseLayout>

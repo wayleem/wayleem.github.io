@@ -1,0 +1,36 @@
+---
+// A cover-first card. Used by the Featured grid and the products grid.
+import { fmtDate } from '@/lib/site';
+
+interface Props {
+  href: string;
+  cover: string;
+  title: string;
+  label: string;
+  summary: string;
+  date?: Date;
+  eager?: boolean;
+}
+
+const { href, cover, title, label, summary, date, eager = false } = Astro.props;
+---
+
+<a class="card" href={href}>
+  <img
+    class="card__cover"
+    src={cover}
+    alt=""
+    width="1200"
+    height="630"
+    loading={eager ? 'eager' : 'lazy'}
+    decoding="async"
+  />
+  <div class="card__body">
+    <p class="card__meta">
+      <span class="meta">{label}</span>
+      {date && <time class="meta" datetime={date.toISOString()}>{fmtDate(date)}</time>}
+    </p>
+    <h3 class="card__title">{title}</h3>
+    <p class="card__summary">{summary}</p>
+  </div>
+</a>
