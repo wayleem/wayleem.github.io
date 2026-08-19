@@ -1,0 +1,34 @@
+---
+// Shared by the front-page PRODUCTS block and /products. Rows link to the case
+// study, not the live site — the reasoning is the thing worth reading.
+import { getCollection } from 'astro:content';
+
+interface Props {
+  showStack?: boolean;
+}
+const { showStack = true } = Astro.props;
+
+const items = (await getCollection('products'))
+  .filter((e) => !e.data.draft)
+  .sort((a, b) => a.data.order - b.data.order || +b.data.date - +a.data.date);
+---
+
+<ul class="products">
+  {items.map((e) => (
+    <li>
+      <a class="product" href={`/products/${e.id}`}>
+        <div class="product__head">
+          <span class="product__name">{e.data.title}</span>
+          {e.data.kind === 'tool' && <span class="meta">Tool</span>}
+          {e.data.status !== 'live' && <span class="meta">{e.data.status}</span>}
+        </div>
+        <p class="product__summary">{e.data.summary}</p>
+        {showStack && e.data.stack.length > 0 && (
+          <div class="product__stack">
+            {e.data.stack.map((s) => <span>{s}</span>)}
+          </div>
+        )}
+      </a>
+    </li>
+  ))}
+</ul>

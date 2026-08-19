@@ -1,25 +1,43 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
+import { EXPERIENCE } from '@/lib/site';
 ---
 
-<BaseLayout title="About — Wayleem" description="Who I am and what I build.">
-  <main class="page prose">
-    <a class="page__back" href="/#about">← map</a>
-    <h1>About</h1>
-    <p class="lede">Builder, tinkerer, occasional writer.</p>
+<BaseLayout title="About" description="William Huang — fullstack engineer. What I build and where I've worked.">
+  <article class="article">
+    <h1 class="article__title">About</h1>
 
-    <p>
-      Placeholder bio. Replace this copy in <code>src/pages/about.astro</code>.
-      Talk about what you build, the stack you like, and what you're looking for.
-    </p>
+    <div class="prose">
+      <p>
+        I'm William Huang. I'm a fullstack engineer. I build web products — currently
+        <a href="/products/skadooble">skadooble</a>, an AI study tool, and
+        <a href="/products/flowviant">flowviant</a>, a workbench for running coding agents
+        across machines. I also trade my own money.
+      </p>
+      <p>
+        Most of what I write here comes out of that work: decisions I had to make, things
+        that broke in production, and the occasional opinion about how software should be
+        put together.
+      </p>
+    </div>
 
-    <h2>Now</h2>
-    <p>What you're focused on at the moment.</p>
+    {EXPERIENCE.length > 0 && (
+    <div class="section-head">
+      <h2>Experience</h2>
+    </div>
+    <ul class="roles">
+      {EXPERIENCE.map((r) => (
+        <li>
+          <div class="role__head">
+            <span class="role__title">{r.title}</span>
+            <span class="role__org">{r.org}</span>
+            <span class="meta" style="margin-left:auto">{r.period}</span>
+          </div>
+          <p class="role__summary">{r.summary}</p>
+        </li>
+      ))}
+    </ul>
+    )}
 
-    <h2>Elsewhere</h2>
-    <p>
-      <a href="/work">Projects</a> · <a href="/writing">Writing</a> ·
-      <a href="/contact">Contact</a>
-    </p>
-  </main>
+  </article>
 </BaseLayout>

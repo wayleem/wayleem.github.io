@@ -1,0 +1,25 @@
+---
+// Live products, above the feed. Derived from content rather than hand-listed,
+// so it can't drift: a product appears here when kind=product and status=live.
+import { getCollection } from 'astro:content';
+
+const live = (await getCollection('products'))
+  .filter((e) => !e.data.draft && e.data.kind === 'product' && e.data.status === 'live')
+  .sort((a, b) => a.data.order - b.data.order);
+---
+
+{live.length > 0 && (
+  <div class="now">
+    <span class="now__label">Now</span>
+    <ul class="now__items">
+      {live.map((e) => (
+        <li>
+          <a href={`/products/${e.id}`}>
+            <span class="now__name">{e.data.title}</span>
+          </a>
+          <span class="now__what">— {e.data.tagline ?? e.data.summary}</span>
+        </li>
+      ))}
+    </ul>
+  </div>
+)}

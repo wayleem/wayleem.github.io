@@ -1,0 +1,66 @@
+---
+title: "skadooble"
+summary: "An AI study tool built around persistent per-unit question banks and consolidated finals that synthesize across units."
+tagline: "Study per unit, get examined across units."
+date: 2026-07-07
+order: 0
+kind: product
+status: live
+stack:
+  - Hono
+  - Cloudflare Workers
+  - D1
+  - Drizzle
+  - Clerk
+  - Stripe
+url: https://skadooble.com
+repo: null
+cover: null
+draft: false
+---
+
+## The problem
+
+Students study one unit at a time, then get examined across all of them. Most
+study tools model the first half of that and not the second: they generate
+questions for whatever material you just uploaded, and the questions evaporate
+when the session ends.
+
+skadooble keeps a **persistent question bank per unit**, and builds a
+**consolidated final** on top of them — questions that require pulling from more
+than one unit at once, which is the thing the exam actually tests.
+
+{/* TODO(william): expand — what you tried before landing on persistent banks. */}
+
+## What I chose
+
+**Persistent banks over per-session generation.** Regenerating questions each
+session is cheaper to build and worse in every way that matters: mastery can't
+accumulate, misses can't be tracked, and the student can't tell whether they're
+improving or getting easier questions.
+
+{/* TODO(william): the other two or three real decisions — the mastery model,
+    applied/recall tagging, why the extension exists at all. */}
+
+## What broke
+
+The interesting failures were all about **partial writes and untrusted model
+output**, not about the AI being wrong:
+
+- **A crash could empty a bank.** `persistBank` pruned retired questions and
+  wrote new ones non-atomically, so a failure mid-write left a student with
+  fewer questions than they started with. Same class of bug on finals, where a
+  torn write could become the *latest* final.
+- **The grader was an injection target.** Short-answer grading feeds student
+  text to a model that also holds the rubric. Nothing stopped a student from
+  writing instructions instead of an answer. Fixed by fencing the answer as
+  data and clamping the returned score to `[0,1]` rather than trusting it.
+- **Stripe events arrive out of order.** Subscription webhooks are not ordered,
+  so a stale `updated` could overwrite a newer `cancelled`. Tier and customer
+  writes became atomic upserts that drop out-of-order events.
+- **AI cost had no ceiling.** Reasoning tokens weren't metered and embedding
+  fan-out was unbounded, so one large upload could cost more than a month of
+  subscription. Now metered, bounded with `mapLimit`, and capped.
+
+{/* TODO(william): pick the two or three of these worth expanding into real
+    paragraphs, and cut the rest to a line. */}

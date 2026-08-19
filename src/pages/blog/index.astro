@@ -1,0 +1,98 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+import { fmtDate, itemLabel, yearOf } from '@/lib/site';
+
+const posts = (await getCollection('posts'))
+  .filter((e) => !e.data.draft)
+  .sort((a, b) => +b.data.date - +a.data.date);
+
+// Filter chips: kinds first, then any product that actually has log entries.
+const projects = [...new Set(posts.map((e) => e.data.project).filter(Boolean))] as string[];
+const filters = [
+  { key: 'all', label: 'All' },
+  { key: 'essay', label: 'Essays' },
+  { key: 'note', label: 'Notes' },
+  { key: 'log', label: 'Log' },
+  ...projects.map((p) => ({ key: `project:${p}`, label: p })),
+];
+
+// Group by year so a long list stays navigable without pagination.
+const years = [...new Set(posts.map((e) => yearOf(e.data.date)))].sort((a, b) => b - a);
+---
+
+<BaseLayout title="Blog" description="Essays, notes, and a running log of what I ship.">
+  <div class="filters" role="group" aria-label="Filter posts">
+    {filters.map((f) => (
+      <button type="button" data-filter={f.key} aria-pressed={f.key === 'all' ? 'true' : 'false'}>
+        {f.label}
+      </button>
+    ))}
+  </div>
+
+  {years.map((y) => (
+    <section data-year={y}>
+      <p class="year-rule">{y}</p>
+      <ul class="feed">
+        {posts.filter((e) => yearOf(e.data.date) === y).map((e) => (
+          <li data-kind={e.data.kind} data-project={e.data.project ?? ''}>
+            <a class={`item item--${e.data.kind}`} href={`/blog/${e.id}`}>
+              <div class="item__meta">
+                <time class="meta" datetime={e.data.date.toISOString()}>{fmtDate(e.data.date)}</time>
+                <span class="meta">{itemLabel(e.data.kind, e.data.project)}</span>
+              </div>
+              <h2 class="item__title">{e.data.title}</h2>
+              <p class="item__summary">{e.data.summary}</p>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  ))}
+
+  <p id="blog-empty" class="item__summary" hidden>Nothing here yet under that filter.</p>
+
+  <script>
+    // Client-side filtering: the full list is already in the HTML (good for
+    // crawlers and no-JS), so filtering is just hiding rows. Year headings hide
+    // themselves when every row beneath them is filtered out.
+    function bindFilters() {
+      const group = document.querySelector('.filters');
+      if (!group || group.hasAttribute('data-bound')) return;
+      group.setAttribute('data-bound', '1');
+
+      const empty = document.getElementById('blog-empty');
+
+      group.addEventListener('click', (e) => {
+        const btn = (e.target as Element)?.closest('button[data-filter]');
+        if (!btn) return;
+        const key = btn.getAttribute('data-filter') || 'all';
+
+        group.querySelectorAll('button[data-filter]').forEach((b) =>
+          b.setAttribute('aria-pressed', String(b === btn)),
+        );
+
+        let shown = 0;
+        document.querySelectorAll<HTMLElement>('.feed > li[data-kind]').forEach((li) => {
+          const kind = li.dataset.kind || '';
+          const project = li.dataset.project || '';
+          const on =
+            key === 'all' ||
+            key === kind ||
+            (key.startsWith('project:') && project === key.slice(8));
+          li.hidden = !on;
+          if (on) shown++;
+        });
+
+        document.querySelectorAll<HTMLElement>('section[data-year]').forEach((s) => {
+          const any = [...s.querySelectorAll<HTMLElement>('li[data-kind]')].some((li) => !li.hidden);
+          s.hidden = !any;
+        });
+
+        if (empty) empty.hidden = shown > 0;
+      });
+    }
+    document.addEventListener('astro:page-load', bindFilters);
+    bindFilters();
+  </script>
+</BaseLayout>

@@ -1,0 +1,23 @@
+---
+// Nameplate, not a hero. Name, one factual line, nav — then a rule and the page
+// starts. Keeping this under ~140px is what puts content above the fold.
+import { SITE, NAV } from '@/lib/site';
+
+const path = Astro.url.pathname;
+const isCurrent = (href: string) => path === href || path.startsWith(href + '/');
+---
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="masthead__row">
+      <p class="masthead__name"><a href="/">{SITE.name}</a></p>
+      <nav class="masthead__nav" aria-label="Primary">
+        {NAV.map((n) => (
+          <a href={n.href} aria-current={isCurrent(n.href) ? 'page' : undefined}>{n.label}</a>
+        ))}
+      </nav>
+    </div>
+    <p class="masthead__blurb">{SITE.blurb}</p>
+    <hr class="masthead__rule" />
+  </div>
+</header>

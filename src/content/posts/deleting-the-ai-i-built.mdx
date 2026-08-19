@@ -1,0 +1,57 @@
+---
+title: "I deleted the AI I built"
+summary: "Flowviant shipped its own server-side project AI for months. I removed all of it — the pipeline, the skills, the gateway — and made the product run on the user's own Claude instead."
+date: 2026-08-17
+kind: essay
+project: null
+tags:
+  - product
+  - ai
+cover: null
+draft: false
+---
+
+{/* DRAFT SCAFFOLD — the structure and the facts are right; the first-person
+    reasoning is yours to write. Everything below is drawn from the actual
+    commit and the invariant you wrote into CLAUDE.md. */}
+
+Flowviant used to have its own AI. It was called Flowvy, it lived on the server,
+and it did a lot: a canvas surface, twenty-five skills, an AI gateway, a
+generation pipeline, PRD drafting, a home-page draft wizard, workspace context
+syncs. Months of work.
+
+On 17 August I deleted all of it in one commit.
+
+## Why it had to go
+
+The product is a relay. You point Flowviant at your machines and it runs coding
+agents on them — your hardware, your repo, your credentials, and the model
+subscription you already pay for. Once that's the shape of the product, a
+second AI running on my server is competing with the one the user brought.
+
+{/* TODO(william): the real reasons, in your words. Candidates, from what the
+    code shows:
+      - two brains meant two contexts, and mine always had the worse one
+      - server-paid model calls are a cost I carry per user, forever
+      - every Flowvy surface was a surface I had to keep in sync with a CLI
+        that ships faster than I do
+      - it made the product harder to explain
+    Pick the ones that are actually true and say which hurt most. */}
+
+## What stayed
+
+Three server-side model calls survive: the review quiz, embeddings, and ticket
+triage. `aiRouteMetering.test.ts` pins that list, so a fourth has to argue its
+way in rather than appearing during a busy week.
+
+{/* TODO(william): why these three earned an exemption. */}
+
+## What it cost
+
+{/* TODO(william): the honest accounting — what you threw away, what broke,
+    what users noticed. A post about deleting your own work is only worth
+    reading if it admits the price. */}
+
+The rule that replaced it is one line in the project's invariants: **the only AI
+is your own Claude.** Not a preference — a thing the codebase now refuses to
+violate.

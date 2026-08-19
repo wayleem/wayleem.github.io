@@ -1,0 +1,64 @@
+---
+title: "flowviant"
+summary: "A workbench for running coding agents across your own machines — terminal sessions become tabs in the browser, and the only AI involved is the one you already pay for."
+tagline: "Your machines, your Claude, one browser tab."
+date: 2025-08-14
+order: 1
+kind: product
+status: live
+stack:
+  - Hono
+  - Drizzle
+  - React
+  - TanStack Query
+  - Yjs
+  - npm daemon
+url: https://app.flowviant.com
+repo: null
+cover: null
+draft: false
+---
+
+## What it is
+
+flowviant runs on your machines. A daemon sits on each one; the browser is a
+relay. You open a tab, pick a CLI — Claude Code, Codex, Antigravity — and the
+agent runs on your hardware, in your repo, with your credentials. Thinking
+streams back, keystrokes echo, a running terminal session can be adopted into a
+tab mid-flight.
+
+The governing rule is that **flowviant relays and never withholds**. The only
+thing it knows that your agent doesn't is whether a machine is reachable.
+Everything on screen is either something your agent said or something you'd have
+known by sitting at the keyboard. It has no reasons of its own to say "not now."
+
+{/* TODO(william): a screenshot of the workbench belongs here. */}
+
+## What I chose
+
+**Deleting the server-side AI.** flowviant used to ship its own project AI —
+a generation pipeline, a skills system, PRD drafting, a home-page wizard. It's
+gone, deliberately and entirely. One brain reads the repo and does the work, and
+it's the brain the user already pays for, running on their machine. The only
+model calls the server still makes are review quizzes, embeddings, and ticket
+triage, and a test pins that list so a fourth has to argue its way in.
+
+{/* TODO(william): the honest version of why — what the server-side AI cost you
+    to maintain, and what it was competing with. This is the strongest story on
+    the site; it deserves real paragraphs. */}
+
+**Shipping to a daemon you don't control.** The web app and the daemon deploy on
+different clocks, and users update whenever they feel like it. Every capability
+sits behind a version floor: the daemon reports its version, and the server
+refuses a feature *in words* rather than failing strangely. Floors move
+independently of `DAEMON_LATEST`, so a feature can ship to the web before every
+machine has caught up.
+
+{/* TODO(william): the 500-line law and the refactor sweep — fourteen files
+    dismantled, 1709 lines to 181. Either a section here or its own note. */}
+
+## Scale
+
+A year of work, ~2,700 commits, three CLI runtimes, a published daemon at
+0.48.x. It started as ASP.NET Core, moved to a TypeScript monorepo, and has been
+rewritten around sessions-as-tabs since.

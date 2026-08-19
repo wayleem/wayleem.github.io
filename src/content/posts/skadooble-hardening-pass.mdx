@@ -1,0 +1,29 @@
+---
+title: "Hardening pass — atomic writes, ordered billing, metered AI"
+summary: "A full audit of the failure paths: a crash could empty a question bank, out-of-order Stripe events could resurrect a cancelled plan, and AI spend had no ceiling."
+date: 2026-08-07
+kind: log
+project: skadooble
+tags:
+  - reliability
+  - billing
+cover: null
+draft: false
+---
+
+A day spent entirely on the paths that only run when something goes wrong.
+
+**Persistence.** `persistBank` pruned retired questions and wrote new ones in
+separate steps, so a crash between them left a student with a smaller bank than
+they started with. Both that and finals persistence are now atomic — a torn
+final can no longer become the latest one — and `review_state` is deleted
+alongside the questions it pointed at.
+
+**Billing.** Stripe webhooks aren't ordered. Tier and customer writes became
+atomic upserts that drop out-of-order events, duplicate subscriptions and
+repeated free trials are blocked, and deleting an account now cancels the
+subscription instead of leaving it billing.
+
+**AI spend.** Reasoning tokens are metered, the audit runs under a cost ceiling,
+embedding fan-out is bounded with `mapLimit`, and a failed generation refunds the
+free slot it consumed rather than silently eating it.

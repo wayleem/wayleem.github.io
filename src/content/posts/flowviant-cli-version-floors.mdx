@@ -1,0 +1,22 @@
+---
+title: "Codex and Antigravity tabs, behind their own version floors"
+summary: "Two more CLI runtimes in the workbench, each gated on the daemon actually being able to serve it — and refusing in words when it can't."
+date: 2026-08-18
+kind: log
+project: flowviant
+tags:
+  - daemon
+  - versioning
+cover: null
+draft: false
+---
+
+The new-tab picker now offers Codex and Antigravity alongside Claude Code, but
+only on machines whose daemon can actually run them. Each runtime sits behind its
+own floor: the daemon reports its version, the server checks it, and creating a
+tab it can't serve fails with a sentence rather than a stack trace.
+
+Adoption is per-CLI — a Codex session resumes by thread id, an Antigravity tab
+keeps the session's runtime when adopted. `DAEMON_LATEST` moved 0.44.1 → 0.48.2
+across the sweep; the minimum floor didn't have to move with it, because every
+new capability gates itself.

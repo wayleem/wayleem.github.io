@@ -1,153 +1,40 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import HiddenNav from '@/components/HiddenNav.astro';
-import Hub from '@/components/hub/Hub.astro';
-import WorkRoom from '@/components/rooms/WorkRoom.astro';
-import WritingRoom from '@/components/rooms/WritingRoom.astro';
-import AboutRoom from '@/components/rooms/AboutRoom.astro';
-import ContactRoom from '@/components/rooms/ContactRoom.astro';
-import '@/styles/home.css';
+import NowStrip from '@/components/NowStrip.astro';
+import ProductList from '@/components/ProductList.astro';
+import FeedItem from '@/components/FeedItem.astro';
+import { getCollection } from 'astro:content';
+import { SITE } from '@/lib/site';
+
+const FEED_LIMIT = 15;
+
+const posts = (await getCollection('posts'))
+  .filter((e) => !e.data.draft)
+  .sort((a, b) => +b.data.date - +a.data.date)
+  .slice(0, FEED_LIMIT);
 ---
 
-<BaseLayout title="wayleem" immersive>
-  <HiddenNav />
+<BaseLayout title={SITE.name} rawTitle description={SITE.description}>
+  <NowStrip />
 
-  <div class="stage">
-    <div class="world">
-      <Hub />
-      <section class="area" data-area="work"><WorkRoom /></section>
-      <section class="area" data-area="writing"><WritingRoom /></section>
-      <section class="area" data-area="about"><AboutRoom /></section>
-      <section class="area" data-area="contact"><ContactRoom /></section>
-    </div>
+  <ul class="feed">
+    {posts.map((e) => (
+      <li>
+        <FeedItem
+          slug={e.id}
+          title={e.data.title}
+          summary={e.data.summary}
+          date={e.data.date}
+          kind={e.data.kind}
+          project={e.data.project}
+        />
+      </li>
+    ))}
+  </ul>
+
+  <div class="section-head">
+    <h2>Products</h2>
+    <a href="/products">All →</a>
   </div>
-
-  <script>
-  // One continuous plane, locked camera. Focusing a section translates the
-  // whole .world so that section's node lands at its edge; the hub cluster
-  // fades except that node (which stays put — it's the same element moving with
-  // the plane). No FLIP, no duplicate. Areas scroll natively (camera is locked).
-  const R = 128; // node distance from hub center (must match Hub.astro)
-  const DURATION = 640;
-  const SECTIONS = ['work', 'writing', 'about', 'contact'];
-  const nodeWorld = { work: [R, 0], about: [-R, 0], writing: [0, -R], contact: [0, R] };
-
-  let current = 'hub';
-  let animating = false;
-  let cams = { hub: [0, 0] };
-
-  const q = (s) => document.querySelector(s);
-  const worldEl = () => q('.world');
-  const areaEl = (id) => q(`.area[data-area="${id}"]`);
-
-  function layout() {
-    const W = window.innerWidth, H = window.innerHeight;
-    // Where each section's node sits (screen px) once focused.
-    const anchor = {
-      work: [0.14 * W, 0.5 * H],
-      about: [0.86 * W, 0.5 * H],
-      writing: [0.5 * W, 0.84 * H],
-      contact: [0.5 * W, 0.16 * H],
-    };
-    // Screen region the area content should fill once focused: [x, y, w, h].
-    const region = {
-      work: [0.21 * W, 0, 0.75 * W, H],
-      about: [0.04 * W, 0, 0.75 * W, H],
-      writing: [0.08 * W, 0.02 * H, 0.84 * W, 0.7 * H],
-      contact: [0.08 * W, 0.28 * H, 0.84 * W, 0.7 * H],
-    };
-    cams = { hub: [0.5 * W, 0.5 * H] };
-    for (const id of SECTIONS) {
-      cams[id] = [anchor[id][0] - nodeWorld[id][0], anchor[id][1] - nodeWorld[id][1]];
-      const a = areaEl(id);
-      if (!a) continue;
-      const [sx, sy, sw, sh] = region[id];
-      a.style.left = sx - cams[id][0] + 'px';
-      a.style.top = sy - cams[id][1] + 'px';
-      a.style.width = sw + 'px';
-      a.style.height = sh + 'px';
-    }
-    applyCam(current, false);
-  }
-
-  function applyCam(id, animated) {
-    const w = worldEl();
-    if (!w) return;
-    const c = cams[id] || cams.hub;
-    w.style.transition = animated ? '' : 'none';
-    w.style.transform = `translate(${c[0]}px, ${c[1]}px)`;
-  }
-
-  function setVisuals(id) {
-    const inArea = id !== 'hub';
-    document.querySelectorAll('.hub .hnode').forEach((n) => {
-      const target = inArea && n.dataset.goto === id;
-      const dim = inArea && !target;
-      n.style.opacity = dim ? '0' : '1';
-      n.style.pointerEvents = dim ? 'none' : '';
-    });
-    const edges = q('.hub__edges');
-    if (edges) edges.style.opacity = inArea ? '0' : '1';
-    // Only the focused area is visible; the rest fade out so they don't bleed
-    // into the hub view from the edges.
-    document.querySelectorAll('.area').forEach((a) => {
-      const on = a.dataset.area === id;
-      a.style.opacity = on ? '1' : '0';
-      a.style.pointerEvents = on ? 'auto' : 'none';
-    });
-    document.body.classList.toggle('in-area', inArea);
-    const s = q('.stage');
-    if (s) s.dataset.focus = id;
-  }
-
-  function focus(id, animated) {
-    if (id === current && animated) return;
-    applyCam(id, animated);
-    setVisuals(id);
-    current = id;
-    if (animated) {
-      animating = true;
-      setTimeout(() => (animating = false), DURATION);
-    }
-  }
-
-  function navigate(id) {
-    if (animating) return;
-    history.pushState({ v: id }, '', id === 'hub' ? location.pathname : '#' + id);
-    focus(id, true);
-  }
-  function syncHash(animated) {
-    const id = (location.hash || '').slice(1);
-    focus(SECTIONS.includes(id) ? id : 'hub', animated);
-  }
-
-  document.addEventListener('click', (e) => {
-    const t = e.target;
-    if (!(t instanceof Element)) return;
-    const g = t.closest('[data-goto]');
-    if (g) {
-      e.preventDefault();
-      const id = g.getAttribute('data-goto');
-      const inHub = !!g.closest('.hub');
-      navigate(inHub && current === id ? 'hub' : id); // node toggles hub<->area
-      return;
-    }
-  });
-  window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && current !== 'hub') navigate('hub');
-  });
-  window.addEventListener('popstate', () => syncHash(true));
-  window.addEventListener('resize', () => { if (q('.stage')) layout(); });
-
-  function boot() {
-    const stage = q('.stage');
-    if (!stage || stage.dataset.booted) return;
-    stage.dataset.booted = '1';
-    current = 'hub';
-    layout();
-    syncHash(false);
-  }
-  document.addEventListener('astro:page-load', boot);
-  boot();
-  </script>
+  <ProductList />
 </BaseLayout>

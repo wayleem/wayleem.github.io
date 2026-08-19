@@ -1,20 +1,54 @@
 ---
+import '@fontsource-variable/newsreader';
 import '@/styles/global.css';
 import { ClientRouter } from 'astro:transitions';
+import { SITE } from '@/lib/site';
+import Masthead from '@/components/Masthead.astro';
+import SiteFooter from '@/components/SiteFooter.astro';
 
 interface Props {
   title: string;
   description?: string;
-  immersive?: boolean; // homepage canvas: no chrome, no scroll
+  /** Full page title override; otherwise "<title> — William Huang". */
+  rawTitle?: boolean;
+  /** OG image path, relative to the site root. */
+  ogImage?: string;
+  /** Article metadata for OpenGraph + JSON-LD. */
+  publishedAt?: Date;
 }
 
 const {
   title,
-  description = 'wayleem — i make stuff. work, writing, and how to reach me.',
-  immersive = false,
+  description = SITE.description,
+  rawTitle = false,
+  ogImage = '/og/default.png',
+  publishedAt,
 } = Astro.props;
 
-const canonical = new URL(Astro.url.pathname, Astro.site);
+const pageTitle = rawTitle ? title : `${title} — ${SITE.name}`;
+const canonical = new URL(Astro.url.pathname, Astro.site ?? SITE.url);
+const ogUrl = new URL(ogImage, Astro.site ?? SITE.url);
+
+// Search sees an Article for posts, a Person for everything else. Both name the
+// same author so the site reads as one identity rather than a loose set of pages.
+const jsonLd = publishedAt
+  ? {
+      '@context': 'https://schema.org',
+      '@type': 'Article',
+      headline: title,
+      description,
+      datePublished: publishedAt.toISOString(),
+      author: { '@type': 'Person', name: SITE.name, url: SITE.url },
+      mainEntityOfPage: canonical.href,
+    }
+  : {
+      '@context': 'https://schema.org',
+      '@type': 'Person',
+      name: SITE.name,
+      url: SITE.url,
+      jobTitle: 'Fullstack Engineer',
+      sameAs: ['https://github.com/wayleem', 'https://www.linkedin.com/in/wayleem'],
+    };
 ---
 
 <!doctype html>
@@ -22,15 +56,25 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{title}</title>
+    <title>{pageTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <meta property="og:title" content={title} />
+    <link rel="alternate" type="application/rss+xml" title={SITE.name} href="/rss.xml" />
+
+    <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={publishedAt ? 'article' : 'website'} />
     <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogUrl} />
+    <meta property="og:site_name" content={SITE.name} />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogUrl} />
+
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />
+
     <ClientRouter />
     <!-- Light by default; re-apply saved theme on load AND after each view
          transition swap (before paint) so it never flashes or resets. -->
@@ -38,7 +82,9 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
       (() => {
         const apply = () => {
           let t;
-          try { t = localStorage.getItem('theme'); } catch {}
+          try {
+            t = localStorage.getItem('theme');
+          } catch {}
           if (t === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
           else document.documentElement.removeAttribute('data-theme');
         };
@@ -50,7 +96,11 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
       })();
     </script>
   </head>
-  <body class={immersive ? 'is-immersive' : ''}>
-    <slot />
+  <body>
+    <Masthead />
+    <main class="wrap">
+      <slot />
+    </main>
+    <SiteFooter />
   </body>
 </html>

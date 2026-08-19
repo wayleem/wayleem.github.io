@@ -1,0 +1,6 @@
+# Old canvas-era routes -> the publication structure.
+/work                 /products              301
+/work/:slug           /products/:slug        301
+/writing              /blog                  301
+/writing/:slug        /blog/:slug            301
+/contact              /about                 301

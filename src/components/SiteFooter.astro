@@ -1,0 +1,26 @@
+---
+// Contact lives here and only here. Findable, never advertised.
+import { CONTACT_LINKS, SITE } from '@/lib/site';
+import ThemeToggle from '@/components/ThemeToggle.astro';
+
+const ext = (href: string) => href.startsWith('http');
+const year = new Date().getFullYear();
+---
+
+<footer class="wrap">
+  <div class="footer">
+    <div class="footer__links">
+      {CONTACT_LINKS.map((l) => (
+        <a
+          href={l.href}
+          target={ext(l.href) ? '_blank' : undefined}
+          rel={[ext(l.href) ? 'noopener' : '', l.me ? 'me' : ''].filter(Boolean).join(' ') || undefined}
+        >{l.label}</a>
+      ))}
+    </div>
+    <div class="footer__links">
+      <span style="color: var(--text-faint)">© {year} {SITE.name}</span>
+      <ThemeToggle />
+    </div>
+  </div>
+</footer>

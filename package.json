@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "postbuild": "node -e \"require('fs').writeFileSync('dist/.assetsignore','_worker.js\\n_routes.json\\n')\"",
+    "postbuild": "node scripts/generate-og.mjs && node -e \"require('fs').writeFileSync('dist/.assetsignore','_worker.js\\n_routes.json\\n')\"",
     "preview": "wrangler dev ./dist/_worker.js/index.js",
     "check": "astro check",
     "astro": "astro"
@@ -15,7 +15,9 @@
     "@astrojs/cloudflare": "^12",
     "@astrojs/mdx": "^4",
     "@astrojs/react": "^4",
+    "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3",
+    "@fontsource-variable/newsreader": "^5.3.0",
     "@keystatic/astro": "^5",
     "@keystatic/core": "^0.5",
     "astro": "^5",
@@ -23,8 +25,13 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@resvg/resvg-js": "^2.6.2",
     "@types/react": "^18.3",
     "@types/react-dom": "^18.3",
+    "js-yaml": "^4.3.1",
+    "satori": "^0.29.1",
+    "typescript": "^5.9.3",
     "wrangler": "^3"
   }
 }

@@ -1,0 +1,26 @@
+---
+// One row of the merged river. Essays and notes get the serif treatment and an
+// excerpt; logs are visually quieter — they prove activity, essays carry the
+// argument.
+import { fmtDate, itemLabel } from '@/lib/site';
+
+interface Props {
+  slug: string;
+  title: string;
+  summary: string;
+  date: Date;
+  kind: string;
+  project?: string | null;
+}
+
+const { slug, title, summary, date, kind, project } = Astro.props;
+---
+
+<a class={`item item--${kind}`} href={`/blog/${slug}`}>
+  <div class="item__meta">
+    <time class="meta" datetime={date.toISOString()}>{fmtDate(date)}</time>
+    <span class="meta">{itemLabel(kind, project)}</span>
+  </div>
+  <h2 class="item__title">{title}</h2>
+  <p class="item__summary">{summary}</p>
+</a>
